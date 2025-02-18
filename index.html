@@ -43,9 +43,10 @@
                         method: 'GET',
                         headers: {
                             'Accept': 'application/json',
-                            'Origin': 'https://www.testmoneytransfers.xyz'
+                            'Content-Type': 'application/json'
                         },
-                        mode: 'cors'
+                        mode: 'cors',
+                        credentials: 'omit'
                     });
 
                     console.log('Response status:', response.status);
