@@ -18,66 +18,56 @@
 
         async function fetchTransferData(transactionId) {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/transaction/${transactionId}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
+                console.log('Fetching data for transaction:', transactionId);
+                console.log('API URL:', `${API_BASE_URL}/api/transaction/${transactionId}`);
                 
-                const transferData = data.transfer_data;
-                if (!transferData) {
+                const response = await fetch(`${API_BASE_URL}/api/transaction/${transactionId}`);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'API request failed');
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (!data.transfer_data) {
                     document.getElementById('transferData').innerHTML = 'No transfer data available';
                     return;
                 }
-
+        
                 let html = `
                     <div class="grid grid-cols-2 gap-4">
                         <div class="font-bold">Language:</div>
                         <div>${data.language || 'Not selected'}</div>
                         
                         <div class="font-bold">Amount:</div>
-                        <div>${transferData.amount || 'Not entered'}</div>
+                        <div>${data.transfer_data.amount || 'Not entered'}</div>
                         
                         <div class="font-bold">Destination:</div>
-                        <div>${transferData.country || 'Not selected'}</div>
+                        <div>${data.transfer_data.country || 'Not selected'}</div>
                         
                         <div class="font-bold">Status:</div>
-                        <div>${transferData.status || 'In progress'}</div>
-                        
-                        <div class="font-bold">Last Updated:</div>
-                        <div>${transferData.timestamp || 'N/A'}</div>
+                        <div>${data.transfer_data.status || 'In progress'}</div>
                     </div>
                 `;
-
-                if (transferData.details) {
+        
+                if (data.transfer_data.details) {
                     html += `
                         <div class="mt-4 p-4 bg-gray-50 rounded">
                             <h2 class="text-xl mb-2">Transfer Details</h2>
-                            <pre class="whitespace-pre-wrap">${JSON.stringify(transferData.details, null, 2)}</pre>
+                            <pre class="whitespace-pre-wrap">${JSON.stringify(data.transfer_data.details, null, 2)}</pre>
                         </div>
                     `;
                 }
-
+        
                 document.getElementById('transferData').innerHTML = html;
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error details:', error);
                 document.getElementById('transferData').innerHTML = 
                     `<div class="text-red-500">Error loading transfer data: ${error.message}</div>`;
             }
-        }
-
-        // Get transaction ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const transactionId = urlParams.get('id');
-        
-        if (transactionId) {
-            // Initial fetch
-            fetchTransferData(transactionId);
-            // Poll for updates every 5 seconds
-            setInterval(() => fetchTransferData(transactionId), 5000);
-        } else {
-            document.getElementById('transferData').innerHTML = 
-                '<div class="text-yellow-500"></div>';
         }
     </script>
 </body>
