@@ -13,62 +13,98 @@
     </div>
 
     <script>
-        // Configuration - update this with your ngrok URL when testing
         const API_BASE_URL = 'https://cbb8-4-34-34-186.ngrok-free.app';
 
         async function fetchTransferData(transactionId) {
+            const displayError = (message) => {
+                console.error(message);
+                document.getElementById('transferData').innerHTML = 
+                    `<div class="text-red-500 p-4 rounded bg-red-50">${message}</div>`;
+            };
+
             try {
-                console.log('Fetching data for transaction:', transactionId);
-                console.log('API URL:', `${API_BASE_URL}/api/transaction/${transactionId}`);
-                
-                const response = await fetch(`${API_BASE_URL}/api/transaction/${transactionId}`);
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'API request failed');
-                }
-                
-                const data = await response.json();
-                console.log('Received data:', data);
-                
-                if (!data.transfer_data) {
-                    document.getElementById('transferData').innerHTML = 'No transfer data available';
+                if (!transactionId) {
+                    displayError('No transaction ID provided');
                     return;
                 }
-        
-                let html = `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="font-bold">Language:</div>
-                        <div>${data.language || 'Not selected'}</div>
-                        
-                        <div class="font-bold">Amount:</div>
-                        <div>${data.transfer_data.amount || 'Not entered'}</div>
-                        
-                        <div class="font-bold">Destination:</div>
-                        <div>${data.transfer_data.country || 'Not selected'}</div>
-                        
-                        <div class="font-bold">Status:</div>
-                        <div>${data.transfer_data.status || 'In progress'}</div>
-                    </div>
-                `;
-        
-                if (data.transfer_data.details) {
-                    html += `
-                        <div class="mt-4 p-4 bg-gray-50 rounded">
-                            <h2 class="text-xl mb-2">Transfer Details</h2>
-                            <pre class="whitespace-pre-wrap">${JSON.stringify(data.transfer_data.details, null, 2)}</pre>
+
+                console.log(`Attempting to fetch data from: ${API_BASE_URL}/api/transaction/${transactionId}`);
+                
+                const response = await fetch(`${API_BASE_URL}/api/transaction/${transactionId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received data:', data);
+
+                if (data.status === 'success' && data.transfer_data) {
+                    const transferData = data.transfer_data;
+                    const details = transferData.details;
+                    
+                    let html = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="font-bold">Language:</div>
+                            <div>${data.language === 'es' ? 'Spanish' : 'English'}</div>
+                            
+                            <div class="font-bold">Amount:</div>
+                            <div>$${transferData.amount} ${details.currency_from}</div>
+                            
+                            <div class="font-bold">Destination:</div>
+                            <div>${transferData.country.toUpperCase()}</div>
+                            
+                            <div class="font-bold">Exchange Rate:</div>
+                            <div>1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}</div>
+                            
+                            <div class="font-bold">Transfer Fee:</div>
+                            <div>$${details.transfer_fee}</div>
+                            
+                            <div class="font-bold">Total Amount:</div>
+                            <div>$${details.total_amount} ${details.currency_from}</div>
+                            
+                            <div class="font-bold">Amount to Receive:</div>
+                            <div>${details.amount_to} ${details.currency_to}</div>
+                            
+                            <div class="font-bold">Delivery Method:</div>
+                            <div>${details.delivery_method}</div>
                         </div>
                     `;
+
+                    document.getElementById('transferData').innerHTML = html;
+                } else {
+                    document.getElementById('transferData').innerHTML = 
+                        '<div class="text-yellow-500">No transfer data available</div>';
                 }
-        
-                document.getElementById('transferData').innerHTML = html;
             } catch (error) {
-                console.error('Error details:', error);
-                document.getElementById('transferData').innerHTML = 
-                    `<div class="text-red-500">Error loading transfer data: ${error.message}</div>`;
+                displayError(`Error loading data: ${error.message}. Please check console for details.`);
+                console.error('Full error:', error);
             }
         }
+
+        // When page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, checking for transaction ID...');
+            const urlParams = new URLSearchParams(window.location.search);
+            const transactionId = urlParams.get('id');
+            console.log('Transaction ID from URL:', transactionId);
+            
+            if (transactionId) {
+                fetchTransferData(transactionId);
+                // Poll for updates every 5 seconds
+                setInterval(() => fetchTransferData(transactionId), 5000);
+            } else {
+                document.getElementById('transferData').innerHTML = 
+                    '<div class="text-yellow-500">No transaction ID provided in URL</div>';
+            }
+        });
     </script>
 </body>
 </html>
