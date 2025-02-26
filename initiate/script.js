@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const API_BASE_URL = 'https://7420-63-125-103-250.ngrok-free.app'; 
     
     // For production:
-    const API_BASE_URL = 'https://api.testmoneytransfers.xyz';
+    // const API_BASE_URL = 'https://api.testmoneytransfers.xyz';
     
     phoneForm.addEventListener('submit', async function(e) {
         e.preventDefault();
