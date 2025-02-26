@@ -1,0 +1,43 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(45deg, #25d366, #128c7e);
+    padding: 1.5rem;
+}
+
+.btn-primary {
+    background-color: #25d366;
+    border-color: #25d366;
+}
+
+.btn-primary:hover {
+    background-color: #128c7e;
+    border-color: #128c7e;
+}
+
+#resultContainer {
+    transition: all 0.3s ease;
+}
+
+.loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
