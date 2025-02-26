@@ -1,0 +1,23 @@
+name: Deploy Initiate UI to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'initiate/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: initiate # The specific folder containing the initiate UI
+          branch: gh-pages # The branch the action should deploy to
+          clean: false # Don't remove other folders in gh-pages
+          target-folder: initiate # Deploy to a subfolder on gh-pages
