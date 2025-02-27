@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const transactionId = urlParams.get('id');
     
+    // Debug: Log the transaction ID
+    console.log("Transaction ID from URL:", transactionId);
+    
     // Elements
     const loadingContainer = document.getElementById('loadingContainer');
     const transferContent = document.getElementById('transferContent');
@@ -48,22 +51,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch transaction data
     async function fetchTransactionData() {
         if (!transactionId) {
+            console.error("No transaction ID found in URL");
             showError();
             return;
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/api/transaction/${transactionId}`);
+            const requestUrl = `${API_BASE_URL}/api/transaction/${transactionId}`;
+            console.log("Fetching data from:", requestUrl);
+            
+            const response = await fetch(requestUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                // Add these options to help with CORS issues
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            console.log("Response status:", response.status);
             
             if (!response.ok) {
-                throw new Error('Failed to fetch transaction data');
+                console.error("API returned error status:", response.status);
+                throw new Error(`Failed to fetch transaction data: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log("API response data:", data);
             
             if (data.status === 'success' && data.transfer_data) {
                 displayTransferData(data);
             } else {
+                console.error("Data format incorrect:", data);
                 showError();
             }
         } catch (error) {
@@ -74,10 +95,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to display transfer data
     function displayTransferData(data) {
+        console.log("Displaying transfer data:", data);
         const transferData = data.transfer_data;
+        console.log("Transfer data object:", transferData);
+        
+        if (!transferData) {
+            console.error("Transfer data is missing in the response");
+            showError();
+            return;
+        }
+        
         const details = transferData.details;
+        console.log("Transfer details:", details);
         
         if (!details) {
+            console.error("Details object is missing in transfer data");
             showError();
             return;
         }
