@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // API base URL - Update with your actual API endpoint
     // For local development with ngrok
-    const API_BASE_URL = 'https://7420-63-125-103-250.ngrok-free.app';
+    const API_BASE_URL = 'https://e2badbec711e.ngrok.app';
     
     // For production
     // const API_BASE_URL = 'https://api.testmoneytransfers.xyz';
