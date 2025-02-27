@@ -9,18 +9,18 @@ body {
 }
 
 .card-header {
-    background: linear-gradient(45deg, #25d366, #128c7e);
+    background: linear-gradient(45deg, #ff6100, #ff6100);
     padding: 1.5rem;
 }
 
 .btn-primary {
-    background-color: #25d366;
-    border-color: #25d366;
+    background-color: #ff6100;
+    border-color: #ff6100;
 }
 
 .btn-primary:hover {
-    background-color: #128c7e;
-    border-color: #128c7e;
+    background-color: #000000;
+    border-color: #000000;
 }
 
 #resultContainer {
