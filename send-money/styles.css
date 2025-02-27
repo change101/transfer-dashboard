@@ -1,0 +1,162 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.transfer-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.transfer-details {
+    padding: 1.5rem;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.detail-section label, 
+.amount-section label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.select-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #fff;
+}
+
+.flag {
+    margin-right: 10px;
+    width: 24px;
+    height: 16px;
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Flags for specific countries */
+.flag-mx {
+    background-image: url('https://flagcdn.com/w40/mx.png');
+}
+
+.flag-gt {
+    background-image: url('https://flagcdn.com/w40/gt.png');
+}
+
+.chevron-down {
+    color: #888;
+}
+
+.amount-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.amount-left {
+    padding: 0.75rem;
+    flex-grow: 1;
+}
+
+.amount {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.amount-right {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-left: 1px solid #ddd;
+}
+
+.fee-section {
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.fee-line, .total-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.total-line {
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.action-section {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.continue-btn {
+    background-color: #ff5722;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.continue-btn:hover {
+    background-color: #e64a19;
+}
+
+.alert {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+/* Country names to uppercase */
+#countryName {
+    text-transform: capitalize;
+}
