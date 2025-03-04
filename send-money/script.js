@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // API base URL - Update with your actual API endpoint
     // For local development with ngrok
-    const API_BASE_URL = 'https://e2badbec711e.ngrok.app';
+    const API_BASE_URL = 'https://429fef3d9e8a.ngrok.app';
     
     // Store transaction data
     let transactionData = null;
