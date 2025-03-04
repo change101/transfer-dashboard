@@ -160,3 +160,216 @@ body {
 #countryName {
     text-transform: capitalize;
 }
+
+
+/* Recipient section styling */
+.section-header {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.recipient-section, .payment-section {
+    margin-bottom: 1.5rem;
+}
+
+.selected-recipient, .selected-payment {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.recipient-details, .card-details {
+    flex-grow: 1;
+}
+
+.recipient-name, .card-type {
+    font-weight: 600;
+}
+
+.recipient-country, .card-number {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Recipient selector */
+.recipient-selector, .payment-selector {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.no-history .recipient-selector,
+.no-history .payment-selector {
+    display: none;
+}
+
+.recipient-section:hover .recipient-selector,
+.payment-section:hover .payment-selector {
+    max-height: 300px;
+}
+
+.recipient-option, .payment-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.recipient-option:hover, .payment-option:hover {
+    background-color: #f1f3f5;
+}
+
+.recipient-option.selected, .payment-option.selected {
+    background-color: #e9ecef;
+}
+
+/* Card icons */
+.card-icon {
+    width: 40px;
+    height: 30px;
+    border-radius: 4px;
+    background-color: #ddd;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon.visa {
+    background-color: #1a1f71;
+    color: white;
+}
+
+.card-icon.mastercard {
+    background-color: #eb001b;
+    color: white;
+}
+
+.card-icon.amex {
+    background-color: #006fcf;
+    color: white;
+}
+
+/* Add new buttons */
+.add-new-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-new-btn:hover {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.plus-icon {
+    font-size: 1.2rem;
+    margin-right: 6px;
+    font-weight: 600;
+}
+
+/* Forms */
+#addRecipientForm, #addPaymentForm {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* Exchange rate */
+.exchange-rate {
+    background-color: #e8f5e9;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    color: #2e7d32;
+}
+
+.rate-icon {
+    margin-right: 10px;
+}
+
+/* Success message */
+.success-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+}
+
+.btn-new-transfer {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-new-transfer:hover {
+    background-color: #e64a19;
+}
+
+/* Default badge */
+.default-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    background-color: #cfe2ff;
+    color: #0d6efd;
+    border-radius: 4px;
+}
