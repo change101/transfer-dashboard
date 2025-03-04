@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Money Transfer</title>
+    <title>Send money</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,176 +16,18 @@
                         <h2>Send money</h2>
                     </div>
                     
-                    <!-- Success message (hidden by default) -->
-                    <div id="successMessage" style="display: none;">
-                        <div class="success-container">
-                            <div class="success-icon">✓</div>
-                            <h3>Transaction Complete!</h3>
-                            <p>Your money transfer has been processed successfully.</p>
-                            <p>You'll receive a confirmation email shortly.</p>
-                            <button class="btn-new-transfer" onclick="window.location.href='/'">Send another transfer</button>
+                    <!-- Loading container -->
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
+                        <p class="mt-3">Loading transfer details...</p>
                     </div>
                     
-                    <div class="transfer-details" id="transferDetails">
-                        <div class="loading-container" id="loadingContainer">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-3">Loading transfer details...</p>
-                        </div>
-                        
-                        <!-- Returning user view (with history) -->
-                        <div id="returningUserView" style="display: none;">
-                            <div class="section-header">
-                                <h3>Recipient</h3>
-                            </div>
-                            
-                            <div id="recipientOptions" class="option-selector">
-                                <!-- Recipient options will be populated here -->
-                            </div>
-                            
-                            <button id="addRecipientBtn" class="add-new-btn">
-                                <span class="plus-icon">+</span> Add new recipient
-                            </button>
-                            
-                            <div id="recipientForm" class="form-container" style="display: none;">
-                                <form id="newRecipientForm">
-                                    <div class="mb-3">
-                                        <label class="form-label">Full name (as appears on government ID)</label>
-                                        <input type="text" class="form-control" id="recipientName" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Bank name or code</label>
-                                        <input type="text" class="form-control" id="bankName" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Bank account number</label>
-                                        <input type="text" class="form-control" id="accountNumber" required>
-                                    </div>
-                                    <div class="form-buttons">
-                                        <button type="button" class="btn btn-outline-secondary" id="cancelRecipientBtn">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                    </div>
-                                </form>
-                            </div>
-                            
-                            <!-- Transfer details -->
-                            <div class="section-header mt-4">
-                                <h3>Transfer</h3>
-                            </div>
-                            
-                            <!-- Amount to send -->
-                            <div class="amount-section">
-                                <div class="amount-left">
-                                    <label>You send</label>
-                                    <div class="amount send-amount"></div>
-                                </div>
-                                <div class="amount-right">
-                                    <span class="send-currency"></span>
-                                </div>
-                            </div>
-                            
-                            <!-- Exchange rate -->
-                            <div class="exchange-rate">
-                                <div class="rate-icon">↔</div>
-                                <span class="exchange-rate-value"></span>
-                            </div>
-                            
-                            <!-- Recipient receives -->
-                            <div class="amount-section">
-                                <div class="amount-left">
-                                    <label>Recipient receives</label>
-                                    <div class="amount receive-amount"></div>
-                                </div>
-                                <div class="amount-right">
-                                    <span class="receive-currency"></span>
-                                </div>
-                            </div>
-                            
-                            <!-- Delivery method -->
-                            <div class="detail-section">
-                                <label>Delivery method</label>
-                                <div class="select-field">
-                                    <span class="delivery-method"></span>
-                                    <span class="chevron-down">▼</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Payment method section -->
-                            <div class="section-header mt-4">
-                                <h3>Payment method</h3>
-                            </div>
-                            
-                            <div id="paymentOptions" class="option-selector">
-                                <!-- Payment method options will be populated here -->
-                            </div>
-                            
-                            <button id="addPaymentBtn" class="add-new-btn">
-                                <span class="plus-icon">+</span> Add new payment method
-                            </button>
-                            
-                            <div id="paymentForm" class="form-container" style="display: none;">
-                                <form id="newPaymentForm">
-                                    <div class="mb-3">
-                                        
-                                        <label>Card information</label>
-                                        <input type="text" class="form-control" id="cardNumber" placeholder="1234 1234 1234 1234" required>
-                                        <div class="row my-2">
-                                          <div class="col">
-                                            <input type="text" class="form-control" id="cardExpiry" placeholder="MM/YY" required>
-                                          </div>
-                                          <div class="col">
-                                            <input type="text" class="form-control" id="cardCvv" placeholder="CVC" required>
-                                          </div>
-                                        </div>
-                                        
-                                    <div class="mb-3">
-                                        <label class="form-label">Your full name (as appears on government ID)</label>
-                                        <input type="text" class="form-control" id="cardName" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Country or region</label>
-                                        <input type="text" class="form-control" id="cardCountry" placeholder="United States" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <input type="text" class="form-control" id="cardZip" placeholder="ZIP" required>
-                                    </div>
-                                    <div class="mb-3 form-check">
-                                        <input type="checkbox" class="form-check-input" id="defaultCard">
-                                        <label class="form-check-label" for="defaultCard">Make default</label>
-                                    </div>
-                                    <div class="form-buttons">
-                                        <button type="button" class="btn btn-outline-secondary" id="cancelPaymentBtn">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                    </div>
-                                </form>
-                            </div>
-                            
-                            <!-- Fee and total section -->
-                            <div class="fee-section">
-                                <div class="fee-line">
-                                    <span>Transfer fees</span>
-                                    <span class="transfer-fee"></span>
-                                </div>
-                                <div class="total-line">
-                                    <span>Total</span>
-                                    <span class="total-amount"></span>
-                                </div>
-                            </div>
-                            
-                            <!-- Continue button -->
-                            <div class="action-section">
-                                <button id="continueButton" class="continue-btn">Send money</button>
-                            </div>
-                        </div>
-                        
-                        <!-- First time user view -->
-                        <div id="firstTimeView" style="display: none;">
+                    <!-- Transfer content -->
+                    <div id="transferContent" class="transfer-details" style="display: none;">
+                        <!-- First-time user view -->
+                        <div id="firstTimeView">
                             <form id="firstTimeForm">
                                 <div class="section-header">
                                     <h3>Recipient information</h3>
@@ -217,6 +59,11 @@
                                     <h3>Payment method</h3>
                                 </div>
                                 
+                                <div class="mb-3">
+                                    <label class="form-label">Card information</label>
+                                    <input type="text" class="form-control" id="firstTimeCardNumber" placeholder="1234 1234 1234 1234" required>
+                                </div>
+                                
                                 <div class="row mb-3">
                                     <div class="col">
                                         <input type="text" class="form-control" id="firstTimeCardExpiry" placeholder="MM/YY" required>
@@ -233,7 +80,7 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Country or region</label>
-                                    <input type="text" class="form-control" id="firstTimeCardCountry" placeholder="United States" required>
+                                    <input type="text" class="form-control" id="firstTimeCardCountry" value="United States" required>
                                 </div>
                                 
                                 <div class="mb-3">
@@ -299,87 +146,93 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Continue button -->
                                 <div class="action-section">
-                                    <button type="submit" class="continue-btn">Continue</button>
+                                    <button type="submit" id="continueButton" class="continue-btn">Continue</button>
                                 </div>
                             </form>
                         </div>
-
-
-
-                        <!-- Review details -->
+                        
+                        <!-- Review screen (hidden by default) -->
                         <div id="reviewView" style="display: none;">
-                          <div class="section-header">
-                            <h3>Review details</h3>
-                          </div>
-                          
-                          <div class="review-section">
-                            <h4>Recipient</h4>
-                            <div class="review-item">
-                              <div class="review-label">Full name</div>
-                              <div class="review-value" id="reviewRecipientName"></div>
+                            <div class="section-header">
+                                <h3>Review details</h3>
                             </div>
-                            <div class="review-item">
-                              <div class="review-label">Bank</div>
-                              <div class="review-value" id="reviewBankName"></div>
+                            
+                            <div class="review-section">
+                                <h4>Recipient</h4>
+                                <div class="review-item">
+                                    <div class="review-label">Full name</div>
+                                    <div class="review-value" id="reviewRecipientName"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Bank</div>
+                                    <div class="review-value" id="reviewBankName"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Account number</div>
+                                    <div class="review-value" id="reviewAccountNumber"></div>
+                                </div>
                             </div>
-                            <div class="review-item">
-                              <div class="review-label">Account number</div>
-                              <div class="review-value" id="reviewAccountNumber"></div>
+                            
+                            <div class="review-section">
+                                <h4>Payment method</h4>
+                                <div class="review-item">
+                                    <div class="review-label">Card</div>
+                                    <div class="review-value" id="reviewCardNumber"></div>
+                                </div>
                             </div>
-                          </div>
-                          
-                          <div class="review-section">
-                            <h4>Payment method</h4>
-                            <div class="review-item">
-                              <div class="review-label">Card</div>
-                              <div class="review-value" id="reviewCardNumber"></div>
+                            
+                            <div class="review-section">
+                                <h4>Transfer details</h4>
+                                <div class="review-item">
+                                    <div class="review-label">You send</div>
+                                    <div class="review-value" id="reviewSendAmount"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Exchange rate</div>
+                                    <div class="review-value" id="reviewExchangeRate"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Recipient receives</div>
+                                    <div class="review-value" id="reviewReceiveAmount"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Delivery method</div>
+                                    <div class="review-value" id="reviewDeliveryMethod"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Transfer fees</div>
+                                    <div class="review-value" id="reviewFees"></div>
+                                </div>
+                                <div class="review-item">
+                                    <div class="review-label">Total</div>
+                                    <div class="review-value" id="reviewTotal"></div>
+                                </div>
                             </div>
-                          </div>
-                          
-                          <div class="review-section">
-                            <h4>Transfer details</h4>
-                            <div class="review-item">
-                              <div class="review-label">You send</div>
-                              <div class="review-value" id="reviewSendAmount"></div>
+                            
+                            <div class="action-section">
+                                <button id="confirmButton" class="continue-btn">Confirm and send</button>
+                                <button id="editButton" class="edit-btn">Edit</button>
                             </div>
-                            <div class="review-item">
-                              <div class="review-label">Exchange rate</div>
-                              <div class="review-value" id="reviewExchangeRate"></div>
-                            </div>
-                            <div class="review-item">
-                              <div class="review-label">Recipient receives</div>
-                              <div class="review-value" id="reviewReceiveAmount"></div>
-                            </div>
-                            <div class="review-item">
-                              <div class="review-label">Delivery method</div>
-                              <div class="review-value" id="reviewDeliveryMethod"></div>
-                            </div>
-                            <div class="review-item">
-                              <div class="review-label">Transfer fees</div>
-                              <div class="review-value" id="reviewFees"></div>
-                            </div>
-                            <div class="review-item">
-                              <div class="review-label">Total</div>
-                              <div class="review-value" id="reviewTotal"></div>
-                            </div>
-                          </div>
-                          
-                          <div class="action-section">
-                            <button id="confirmButton" class="continue-btn">Confirm and send</button>
-                            <button id="editButton" class="edit-btn">Edit</button>
-                          </div>
                         </div>
-                        
-                                                
-                        
-                        <!-- Error message container -->
-                        <div id="errorContainer" style="display: none;">
-                            <div class="alert alert-danger">
-                                <h5>Transfer data not found</h5>
-                                <p>We couldn't find your transfer details. Please return to WhatsApp and try again.</p>
-                            </div>
+                    </div>
+                    
+                    <!-- Success message (hidden by default) -->
+                    <div id="successMessage" style="display: none;">
+                        <div class="success-container">
+                            <div class="success-icon">✓</div>
+                            <h3>Transaction Complete!</h3>
+                            <p>Your money transfer has been processed successfully.</p>
+                            <p>You'll receive a confirmation email shortly.</p>
+                            <button class="btn-new-transfer" onclick="window.location.href='/'">Send another transfer</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Error message container -->
+                    <div id="errorContainer" style="display: none;">
+                        <div class="alert alert-danger">
+                            <h5>Transfer data not found</h5>
+                            <p>We couldn't find your transfer details. Please return to WhatsApp and try again.</p>
                         </div>
                     </div>
                 </div>
