@@ -35,63 +35,45 @@
                             <p class="mt-3">Loading transfer details...</p>
                         </div>
                         
-                        <div id="transferContent" style="display: none;">
-                            <!-- Recipient section -->
+                        <!-- Returning user view (with history) -->
+                        <div id="returningUserView" style="display: none;">
                             <div class="section-header">
                                 <h3>Recipient</h3>
                             </div>
                             
-                            <div class="recipient-section">
-                                <!-- Existing recipient info -->
-                                <div class="selected-recipient">
-                                    <div class="avatar" id="recipientInitial"></div>
-                                    <div class="recipient-details">
-                                        <div class="recipient-name" id="recipientName"></div>
-                                        <div class="recipient-country" id="recipientCountry"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Previous recipients (shown if user has history) -->
-                                <div class="recipient-selector" id="recipientSelector"></div>
-                                
-                                <!-- Add new recipient button -->
-                                <button class="add-new-btn" id="addNewRecipient">
-                                    <span class="plus-icon">+</span> Add new recipient
-                                </button>
-                                
-                                <!-- Add new recipient form (hidden by default) -->
-                                <form id="addRecipientForm" style="display: none;">
+                            <div id="recipientOptions" class="option-selector">
+                                <!-- Recipient options will be populated here -->
+                            </div>
+                            
+                            <button id="addRecipientBtn" class="add-new-btn">
+                                <span class="plus-icon">+</span> Add new recipient
+                            </button>
+                            
+                            <div id="recipientForm" class="form-container" style="display: none;">
+                                <form id="newRecipientForm">
                                     <div class="mb-3">
-                                        <label class="form-label">Full Name</label>
-                                        <input type="text" class="form-control" id="newRecipientName" required>
+                                        <label class="form-label">Full name (as appears on government ID)</label>
+                                        <input type="text" class="form-control" id="recipientName" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Country</label>
-                                        <select class="form-select" id="newRecipientCountry" required>
-                                            <option value="MX">Mexico</option>
-                                            <option value="GT">Guatemala</option>
-                                            <option value="CO">Colombia</option>
-                                        </select>
+                                        <label class="form-label">Bank name or code</label>
+                                        <input type="text" class="form-control" id="bankName" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Bank Name</label>
-                                        <input type="text" class="form-control" id="newRecipientBank">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Bank Account Number</label>
-                                        <input type="text" class="form-control" id="newRecipientAccount">
+                                        <label class="form-label">Bank account number</label>
+                                        <input type="text" class="form-control" id="accountNumber" required>
                                     </div>
                                     <div class="form-buttons">
-                                        <button type="button" class="btn btn-outline-secondary" id="cancelAddRecipient">
+                                        <button type="button" class="btn btn-outline-secondary" id="cancelRecipientBtn">
                                             Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">Add Recipient</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
                                     </div>
                                 </form>
                             </div>
                             
                             <!-- Transfer details -->
-                            <div class="section-header">
+                            <div class="section-header mt-4">
                                 <h3>Transfer</h3>
                             </div>
                             
@@ -99,31 +81,27 @@
                             <div class="amount-section">
                                 <div class="amount-left">
                                     <label>You send</label>
-                                    <div class="amount" id="sendAmount"></div>
+                                    <div class="amount send-amount"></div>
                                 </div>
                                 <div class="amount-right">
-                                    <span id="sendCurrency"></span>
+                                    <span class="send-currency"></span>
                                 </div>
                             </div>
                             
                             <!-- Exchange rate -->
                             <div class="exchange-rate">
-                                <div class="rate-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                        <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/>
-                                    </svg>
-                                </div>
-                                <span id="exchangeRate"></span>
+                                <div class="rate-icon">↔</div>
+                                <span class="exchange-rate-value"></span>
                             </div>
                             
                             <!-- Recipient receives -->
                             <div class="amount-section">
                                 <div class="amount-left">
                                     <label>Recipient receives</label>
-                                    <div class="amount" id="receiveAmount"></div>
+                                    <div class="amount receive-amount"></div>
                                 </div>
                                 <div class="amount-right">
-                                    <span id="receiveCurrency"></span>
+                                    <span class="receive-currency"></span>
                                 </div>
                             </div>
                             
@@ -131,83 +109,58 @@
                             <div class="detail-section">
                                 <label>Delivery method</label>
                                 <div class="select-field">
-                                    <span id="deliveryMethod"></span>
-                                    <span class="chevron-down">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                                        </svg>
-                                    </span>
+                                    <span class="delivery-method"></span>
+                                    <span class="chevron-down">▼</span>
                                 </div>
                             </div>
                             
                             <!-- Payment method section -->
-                            <div class="section-header">
+                            <div class="section-header mt-4">
                                 <h3>Payment method</h3>
                             </div>
                             
-                            <div class="payment-section">
-                                <!-- Current payment method -->
-                                <div class="selected-payment">
-                                    <div class="card-icon visa"></div>
-                                    <div class="card-details">
-                                        <div class="card-type">Debit card</div>
-                                        <div class="card-number" id="cardNumber">*1234</div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Previous payment methods (shown if user has history) -->
-                                <div class="payment-selector" id="paymentMethodSelector"></div>
-                                
-                                <!-- Add new payment method button -->
-                                <button class="add-new-btn" id="addNewPayment">
-                                    <span class="plus-icon">+</span> Add new payment method
-                                </button>
-                                
-                                <!-- Add new payment method form (hidden by default) -->
-                                <form id="addPaymentForm" style="display: none;">
+                            <div id="paymentOptions" class="option-selector">
+                                <!-- Payment method options will be populated here -->
+                            </div>
+                            
+                            <button id="addPaymentBtn" class="add-new-btn">
+                                <span class="plus-icon">+</span> Add new payment method
+                            </button>
+                            
+                            <div id="paymentForm" class="form-container" style="display: none;">
+                                <form id="newPaymentForm">
                                     <div class="mb-3">
-                                        <label class="form-label">Card Number</label>
-                                        <input type="text" class="form-control" id="newCardNumber" required pattern="[0-9]{13,19}">
+                                        <label class="form-label">Card information</label>
+                                        <input type="text" class="form-control" id="cardNumber" placeholder="1234 1234 1234 1234" required>
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col">
-                                            <label class="form-label">Expiration Date</label>
-                                            <input type="text" class="form-control" id="newCardExpiry" placeholder="MM/YY" required>
+                                            <input type="text" class="form-control" id="cardExpiry" placeholder="MM/YY" required>
                                         </div>
                                         <div class="col">
-                                            <label class="form-label">CVV</label>
-                                            <input type="text" class="form-control" id="newCardCvv" required pattern="[0-9]{3,4}">
+                                            <input type="text" class="form-control" id="cardCvv" placeholder="CVC" required>
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Card Type</label>
-                                        <select class="form-select" id="newCardType" required>
-                                            <option value="Visa">Visa</option>
-                                            <option value="Mastercard">Mastercard</option>
-                                            <option value="Amex">American Express</option>
-                                        </select>
+                                        <label class="form-label">Your full name (as appears on government ID)</label>
+                                        <input type="text" class="form-control" id="cardName" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Name on Card</label>
-                                        <input type="text" class="form-control" id="newCardName" required>
+                                        <label class="form-label">Country or region</label>
+                                        <input type="text" class="form-control" id="cardCountry" placeholder="United States" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Country</label>
-                                        <input type="text" class="form-control" id="newCardCountry" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Zip Code</label>
-                                        <input type="text" class="form-control" id="newCardZip" required>
+                                        <input type="text" class="form-control" id="cardZip" placeholder="ZIP" required>
                                     </div>
                                     <div class="mb-3 form-check">
-                                        <input type="checkbox" class="form-check-input" id="newCardDefault">
-                                        <label class="form-check-label" for="newCardDefault">Make default</label>
+                                        <input type="checkbox" class="form-check-input" id="defaultCard">
+                                        <label class="form-check-label" for="defaultCard">Make default</label>
                                     </div>
                                     <div class="form-buttons">
-                                        <button type="button" class="btn btn-outline-secondary" id="cancelAddPayment">
+                                        <button type="button" class="btn btn-outline-secondary" id="cancelPaymentBtn">
                                             Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">Add Payment Method</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
                                     </div>
                                 </form>
                             </div>
@@ -216,11 +169,11 @@
                             <div class="fee-section">
                                 <div class="fee-line">
                                     <span>Transfer fees</span>
-                                    <span id="transferFee"></span>
+                                    <span class="transfer-fee"></span>
                                 </div>
                                 <div class="total-line">
                                     <span>Total</span>
-                                    <span id="totalAmount"></span>
+                                    <span class="total-amount"></span>
                                 </div>
                             </div>
                             
@@ -228,6 +181,128 @@
                             <div class="action-section">
                                 <button id="continueButton" class="continue-btn">Send money</button>
                             </div>
+                        </div>
+                        
+                        <!-- First time user view -->
+                        <div id="firstTimeView" style="display: none;">
+                            <form id="firstTimeForm">
+                                <div class="section-header">
+                                    <h3>Recipient information</h3>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Full name (as appears on government ID)</label>
+                                    <input type="text" class="form-control" id="firstTimeRecipientName" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Bank name or code</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="firstTimeBankName" required>
+                                        <span class="input-group-text">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Bank account number</label>
+                                    <input type="text" class="form-control" id="firstTimeAccountNumber" required>
+                                </div>
+                                
+                                <div class="section-header mt-4">
+                                    <h3>Payment method</h3>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <input type="text" class="form-control" id="firstTimeCardExpiry" placeholder="MM/YY" required>
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" id="firstTimeCardCvv" placeholder="CVC" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Your full name (as appears on government ID)</label>
+                                    <input type="text" class="form-control" id="firstTimeCardName" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Country or region</label>
+                                    <input type="text" class="form-control" id="firstTimeCardCountry" placeholder="United States" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="firstTimeCardZip" placeholder="ZIP" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Your email (we will send you transaction updates)</label>
+                                    <input type="email" class="form-control" id="firstTimeEmail" required>
+                                </div>
+                                
+                                <!-- Transfer summary -->
+                                <div class="section-header mt-4">
+                                    <h3>Transfer summary</h3>
+                                </div>
+                                
+                                <!-- Amount to send -->
+                                <div class="amount-section">
+                                    <div class="amount-left">
+                                        <label>You send</label>
+                                        <div class="amount send-amount"></div>
+                                    </div>
+                                    <div class="amount-right">
+                                        <span class="send-currency"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Exchange rate -->
+                                <div class="exchange-rate">
+                                    <div class="rate-icon">↔</div>
+                                    <span class="exchange-rate-value"></span>
+                                </div>
+                                
+                                <!-- Recipient receives -->
+                                <div class="amount-section">
+                                    <div class="amount-left">
+                                        <label>Recipient receives</label>
+                                        <div class="amount receive-amount"></div>
+                                    </div>
+                                    <div class="amount-right">
+                                        <span class="receive-currency"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delivery method -->
+                                <div class="detail-section">
+                                    <label>Delivery method</label>
+                                    <div class="select-field">
+                                        <span class="delivery-method"></span>
+                                        <span class="chevron-down">▼</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fee and total section -->
+                                <div class="fee-section">
+                                    <div class="fee-line">
+                                        <span>Transfer fees</span>
+                                        <span class="transfer-fee"></span>
+                                    </div>
+                                    <div class="total-line">
+                                        <span>Total</span>
+                                        <span class="total-amount"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Continue button -->
+                                <div class="action-section">
+                                    <button type="submit" class="continue-btn">Continue</button>
+                                </div>
+                            </form>
                         </div>
                         
                         <!-- Error message container -->
