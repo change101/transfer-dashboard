@@ -572,3 +572,54 @@ body {
 .btn-new-transfer:hover {
     background-color: #e64a19;
 }
+
+
+
+
+
+/* Add to your styles.css */
+.review-section {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.review-section h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.review-label {
+  color: #6c757d;
+}
+
+.review-value {
+  font-weight: 500;
+}
+
+.edit-btn {
+  background-color: transparent;
+  color: #0d6efd;
+  border: 1px solid #0d6efd;
+  border-radius: 50px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.edit-btn:hover {
+  background-color: #f1f7ff;
+}
