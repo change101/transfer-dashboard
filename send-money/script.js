@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const reviewView = document.getElementById('reviewView');
     
     // API base URL
-    const API_BASE_URL = 'https://429fef3d9e8a.ngrok.app';
+    const API_BASE_URL = 'https://0e595e084b34.ngrok.app';
     
     // Store user data
     let userData = null;
