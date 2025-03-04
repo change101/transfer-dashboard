@@ -305,6 +305,74 @@
                                 </div>
                             </form>
                         </div>
+
+
+
+                        <!-- Review details -->
+                        <div id="reviewView" style="display: none;">
+                          <div class="section-header">
+                            <h3>Review details</h3>
+                          </div>
+                          
+                          <div class="review-section">
+                            <h4>Recipient</h4>
+                            <div class="review-item">
+                              <div class="review-label">Full name</div>
+                              <div class="review-value" id="reviewRecipientName"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Bank</div>
+                              <div class="review-value" id="reviewBankName"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Account number</div>
+                              <div class="review-value" id="reviewAccountNumber"></div>
+                            </div>
+                          </div>
+                          
+                          <div class="review-section">
+                            <h4>Payment method</h4>
+                            <div class="review-item">
+                              <div class="review-label">Card</div>
+                              <div class="review-value" id="reviewCardNumber"></div>
+                            </div>
+                          </div>
+                          
+                          <div class="review-section">
+                            <h4>Transfer details</h4>
+                            <div class="review-item">
+                              <div class="review-label">You send</div>
+                              <div class="review-value" id="reviewSendAmount"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Exchange rate</div>
+                              <div class="review-value" id="reviewExchangeRate"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Recipient receives</div>
+                              <div class="review-value" id="reviewReceiveAmount"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Delivery method</div>
+                              <div class="review-value" id="reviewDeliveryMethod"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Transfer fees</div>
+                              <div class="review-value" id="reviewFees"></div>
+                            </div>
+                            <div class="review-item">
+                              <div class="review-label">Total</div>
+                              <div class="review-value" id="reviewTotal"></div>
+                            </div>
+                          </div>
+                          
+                          <div class="action-section">
+                            <button id="confirmButton" class="continue-btn">Confirm and send</button>
+                            <button id="editButton" class="edit-btn">Edit</button>
+                          </div>
+                        </div>
+                        
+                                                
                         
                         <!-- Error message container -->
                         <div id="errorContainer" style="display: none;">
