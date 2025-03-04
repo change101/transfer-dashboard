@@ -27,6 +27,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Store user data
     let userData = null;
+
+
+    
+    function hideError() {
+      const errorContainer = document.getElementById('errorContainer');
+      if (errorContainer) {
+        errorContainer.style.display = 'none';
+      }
+    }
+    
+    // Call this when the form is successfully shown
+    function displayFirstTimeView(data) {
+      hideError(); // Hide any existing error messages
+      if (returningUserView) returningUserView.style.display = 'none';
+      if (firstTimeView) firstTimeView.style.display = 'block';
+      
+      const transferData = data.transfer_data;
+      const details = transferData.details;
+      
+      // Fill in transaction data
+      setTransactionDetails(transferData, details);
+      
+      // Show content
+      loadingContainer.style.display = 'none';
+      transferContent.style.display = 'block';
+    }
     
     // Function to format currency
     function formatCurrency(amount, currency) {
@@ -184,22 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
     }
-    
-    // Function to display first-time user view
-    function displayFirstTimeView(data) {
-        if (returningUserView) returningUserView.style.display = 'none';
-        if (firstTimeView) firstTimeView.style.display = 'block';
-        
-        const transferData = data.transfer_data;
-        const details = transferData.details;
-        
-        // Fill in transaction data
-        setTransactionDetails(transferData, details);
-        
-        // Show content
-        loadingContainer.style.display = 'none';
-        transferContent.style.display = 'block';
-    }
+
     
     // Common function to set transaction details in either view
     function setTransactionDetails(transferData, details) {
@@ -453,3 +464,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize by fetching transaction data
     fetchTransactionData();
 });
+
+
+
