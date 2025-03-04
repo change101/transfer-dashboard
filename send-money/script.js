@@ -11,16 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const transferContent = document.getElementById('transferContent');
     const errorContainer = document.getElementById('errorContainer');
     const continueButton = document.getElementById('continueButton');
-    const recipientSelector = document.getElementById('recipientSelector');
-    const addNewRecipientBtn = document.getElementById('addNewRecipient');
-    const paymentMethodSelector = document.getElementById('paymentMethodSelector');
     
     // API base URL - Update with your actual API endpoint
     // For local development with ngrok
     const API_BASE_URL = 'https://429fef3d9e8a.ngrok.app';
-    
-    // Store transaction data
-    let transactionData = null;
     
     // Function to format currency
     function formatCurrency(amount, currency) {
@@ -63,14 +57,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log("API response data:", data);
             
-            if (data.status === 'success') {
-                transactionData = data;
-                displayTransferData(data);
-                
-                // If user has history, populate selectors
-                if (data.user_history) {
-                    populateRecipients(data.user_history.recipients, data.recipient.id);
-                    populatePaymentMethods(data.user_history.payment_methods, data.payment_method.id);
+            if (data.status === 'success' && data.transfer_data) {
+                // Check if the data has the details we need
+                if (data.transfer_data.details) {
+                    displayTransferData(data);
+                } else {
+                    console.error("Missing details in transfer_data");
+                    showError("Missing transaction details");
                 }
             } else {
                 console.error("Data format incorrect:", data);
@@ -82,133 +75,63 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to populate recipient selector
-    function populateRecipients(recipients, selectedId) {
-        if (!recipients || recipients.length === 0) {
-            // Hide selector if no previous recipients
-            document.querySelector('.recipient-section').classList.add('no-history');
-            return;
-        }
-        
-        recipientSelector.innerHTML = '';
-        
-        recipients.forEach(recipient => {
-            const option = document.createElement('div');
-            option.className = 'recipient-option';
-            if (recipient.id === selectedId) {
-                option.classList.add('selected');
-            }
-            
-            option.innerHTML = `
-                <div class="avatar">${recipient.name.charAt(0)}</div>
-                <div class="recipient-details">
-                    <div class="recipient-name">${recipient.name}</div>
-                    <div class="recipient-country">${recipient.country}</div>
-                </div>
-            `;
-            
-            option.dataset.id = recipient.id;
-            recipientSelector.appendChild(option);
-            
-            // Add click event
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.recipient-option').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                // In a real app, you would update the transaction here
-            });
-        });
-        
-        // Show the selector
-        document.querySelector('.recipient-section').classList.remove('no-history');
-    }
-    
-    // Function to populate payment method selector
-    function populatePaymentMethods(paymentMethods, selectedId) {
-        if (!paymentMethods || paymentMethods.length === 0) {
-            // Hide selector if no previous payment methods
-            document.querySelector('.payment-section').classList.add('no-history');
-            return;
-        }
-        
-        paymentMethodSelector.innerHTML = '';
-        
-        paymentMethods.forEach(method => {
-            const option = document.createElement('div');
-            option.className = 'payment-option';
-            if (method.id === selectedId) {
-                option.classList.add('selected');
-            }
-            
-            option.innerHTML = `
-                <div class="card-icon ${method.card_type.toLowerCase()}"></div>
-                <div class="payment-details">
-                    <div class="card-type">${method.card_type}</div>
-                    <div class="card-number">${method.card_number}</div>
-                </div>
-                ${method.is_default ? '<div class="default-badge">Default</div>' : ''}
-            `;
-            
-            option.dataset.id = method.id;
-            paymentMethodSelector.appendChild(option);
-            
-            // Add click event
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.payment-option').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                // In a real app, you would update the transaction here
-            });
-        });
-        
-        // Show the selector
-        document.querySelector('.payment-section').classList.remove('no-history');
-    }
-    
     // Function to display transfer data
     function displayTransferData(data) {
         console.log("Displaying transfer data:", data);
         
-        // Extract data for easier access
-        const transaction = data.transaction;
-        const recipient = data.recipient;
-        const payment = data.payment_method;
+        // Extract details from the transfer_data
+        const transferData = data.transfer_data;
+        const details = transferData.details;
         
-        // Set recipient info
-        document.getElementById('recipientName').textContent = recipient.name;
-        document.getElementById('recipientCountry').textContent = recipient.country;
+        // Set country info
+        let countryName = "Other country";
+        if (transferData.country === "mx") countryName = "Mexico";
+        if (transferData.country === "gt") countryName = "Guatemala";
+        
+        // Set recipient info if elements exist
+        const recipientNameEl = document.getElementById('recipientName');
+        const recipientCountryEl = document.getElementById('recipientCountry');
+        
+        if (recipientNameEl) recipientNameEl.textContent = "Recipient via WhatsApp";
+        if (recipientCountryEl) recipientCountryEl.textContent = countryName;
         
         // Set amounts
-        document.getElementById('sendAmount').textContent = formatCurrency(transaction.send_amount);
-        document.getElementById('sendCurrency').textContent = transaction.send_currency;
+        const sendAmountEl = document.getElementById('sendAmount');
+        const sendCurrencyEl = document.getElementById('sendCurrency');
+        const receiveAmountEl = document.getElementById('receiveAmount');
+        const receiveCurrencyEl = document.getElementById('receiveCurrency');
         
-        document.getElementById('receiveAmount').textContent = formatCurrency(transaction.receive_amount);
-        document.getElementById('receiveCurrency').textContent = transaction.receive_currency;
+        if (sendAmountEl) sendAmountEl.textContent = formatCurrency(details.amount_from);
+        if (sendCurrencyEl) sendCurrencyEl.textContent = details.currency_from;
+        if (receiveAmountEl) receiveAmountEl.textContent = formatCurrency(details.amount_to);
+        if (receiveCurrencyEl) receiveCurrencyEl.textContent = details.currency_to;
         
         // Set delivery method
-        document.getElementById('deliveryMethod').textContent = 
-            transaction.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup';
-        
-        // Set fees and total
-        document.getElementById('transferFee').textContent = 
-            `${formatCurrency(transaction.fee_amount)} ${transaction.send_currency}`;
-        document.getElementById('totalAmount').textContent = 
-            `${formatCurrency(transaction.total_amount)} ${transaction.send_currency}`;
-        
-        // Set exchange rate
-        document.getElementById('exchangeRate').textContent = 
-            `1 ${transaction.send_currency} = ${transaction.exchange_rate} ${transaction.receive_currency}`;
-        
-        // Set card info if available
-        if (payment && payment.card_number) {
-            document.getElementById('cardNumber').textContent = payment.card_number;
+        const deliveryMethodEl = document.getElementById('deliveryMethod');
+        if (deliveryMethodEl) {
+            deliveryMethodEl.textContent = 
+                transferData.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup';
         }
         
-        // Store user ID for form submissions
-        if (data.sender && data.sender.id) {
-            localStorage.setItem('currentUserId', data.sender.id);
+        // Set fees and total
+        const transferFeeEl = document.getElementById('transferFee');
+        const totalAmountEl = document.getElementById('totalAmount');
+        
+        if (transferFeeEl) {
+            transferFeeEl.textContent = 
+                `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+        }
+        
+        if (totalAmountEl) {
+            totalAmountEl.textContent = 
+                `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+        }
+        
+        // Set exchange rate
+        const exchangeRateEl = document.getElementById('exchangeRate');
+        if (exchangeRateEl) {
+            exchangeRateEl.textContent = 
+                `1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
         }
         
         // Hide loading, show content
@@ -217,151 +140,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to show error
-    function showError() {
+    function showError(message = "Transfer data not found. Please return to WhatsApp and try again.") {
         loadingContainer.style.display = 'none';
         errorContainer.style.display = 'block';
+        
+        const errorMsgEl = document.querySelector('#errorContainer p');
+        if (errorMsgEl) {
+            errorMsgEl.textContent = message;
+        }
     }
     
     // Set up continue button
-    continueButton.addEventListener('click', async function() {
-        this.disabled = true;
-        this.innerHTML = '<span class="loader"></span> Processing...';
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/transaction/complete/${transactionId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                mode: 'cors',
-                credentials: 'omit'
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to complete transaction');
-            }
-            
-            const data = await response.json();
-            
-            // Show success message
-            document.getElementById('successMessage').style.display = 'block';
-            document.getElementById('transferDetails').style.display = 'none';
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
-            
-        } catch (error) {
-            console.error('Error completing transaction:', error);
-            alert('There was an error processing your transaction. Please try again.');
-        } finally {
-            this.disabled = false;
-            this.innerHTML = 'Send money';
-        }
-    });
-    
-    // Set up add new recipient button
-    if (addNewRecipientBtn) {
-        addNewRecipientBtn.addEventListener('click', function() {
-            document.getElementById('addRecipientForm').style.display = 'block';
-            document.getElementById('recipientSelector').style.display = 'none';
-            this.style.display = 'none';
-        });
-    }
-    
-    // Set up add recipient form submission
-    const addRecipientForm = document.getElementById('addRecipientForm');
-    if (addRecipientForm) {
-        addRecipientForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const userId = localStorage.getItem('currentUserId');
-            if (!userId) {
-                alert('User ID not found. Please refresh the page.');
-                return;
-            }
-            
-            const formData = {
-                user_id: userId,
-                full_name: document.getElementById('newRecipientName').value,
-                country: document.getElementById('newRecipientCountry').value,
-                bank_name: document.getElementById('newRecipientBank').value,
-                bank_account_number: document.getElementById('newRecipientAccount').value
-            };
+    if (continueButton) {
+        continueButton.addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<span class="loader"></span> Processing...';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/recipient`, {
+                const response = await fetch(`${API_BASE_URL}/api/transaction/complete/${transactionId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData),
                     mode: 'cors',
                     credentials: 'omit'
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to add recipient');
+                    throw new Error('Failed to complete transaction');
                 }
                 
                 const data = await response.json();
                 
-                // Refresh the page to show the new recipient
-                window.location.reload();
+                // Show success message
+                const successMessageEl = document.getElementById('successMessage');
+                const transferDetailsEl = document.getElementById('transferDetails');
                 
-            } catch (error) {
-                console.error('Error adding recipient:', error);
-                alert('There was an error adding the recipient. Please try again.');
-            }
-        });
-    }
-    
-    // Set up add payment method form submission
-    const addPaymentForm = document.getElementById('addPaymentForm');
-    if (addPaymentForm) {
-        addPaymentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const userId = localStorage.getItem('currentUserId');
-            if (!userId) {
-                alert('User ID not found. Please refresh the page.');
-                return;
-            }
-            
-            const formData = {
-                user_id: userId,
-                card_number: document.getElementById('newCardNumber').value,
-                card_type: document.getElementById('newCardType').value,
-                expiration_date: document.getElementById('newCardExpiry').value,
-                cvv: document.getElementById('newCardCvv').value,
-                billing_name: document.getElementById('newCardName').value,
-                country: document.getElementById('newCardCountry').value,
-                zip_code: document.getElementById('newCardZip').value,
-                is_default: document.getElementById('newCardDefault').checked
-            };
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/payment-method`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to add payment method');
+                if (successMessageEl && transferDetailsEl) {
+                    successMessageEl.style.display = 'block';
+                    transferDetailsEl.style.display = 'none';
+                } else {
+                    alert('Transaction completed successfully!');
                 }
                 
-                const data = await response.json();
-                
-                // Refresh the page to show the new payment method
-                window.location.reload();
+                // Scroll to top
+                window.scrollTo(0, 0);
                 
             } catch (error) {
-                console.error('Error adding payment method:', error);
-                alert('There was an error adding the payment method. Please try again.');
+                console.error('Error completing transaction:', error);
+                alert('There was an error processing your transaction. Please try again.');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = 'Send money';
             }
         });
     }
