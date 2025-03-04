@@ -373,3 +373,202 @@ body {
     color: #0d6efd;
     border-radius: 4px;
 }
+
+
+
+
+
+
+/* Additional styles for send-money/styles.css */
+
+/* Option selectors */
+.option-selector {
+    margin-bottom: 1rem;
+}
+
+.recipient-option, .payment-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recipient-option:hover, .payment-option:hover {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.recipient-option.selected, .payment-option.selected {
+    background-color: #e8f0fe;
+    border-color: #4285f4;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.recipient-details, .payment-details {
+    flex-grow: 1;
+}
+
+.recipient-name, .card-type {
+    font-weight: 600;
+}
+
+.recipient-country, .card-number {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Card icon */
+.card-icon {
+    width: 40px;
+    height: 30px;
+    border-radius: 4px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.card-icon.visa {
+    background-color: #1a1f71;
+}
+
+.card-icon.mastercard {
+    background-color: #eb001b;
+}
+
+.card-icon.amex {
+    background-color: #006fcf;
+}
+
+.card-icon.card-generic {
+    background-color: #6c757d;
+}
+
+/* Add new button */
+.add-new-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    background: none;
+    color: #6c757d;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.add-new-btn:hover {
+    background-color: #f1f3f5;
+    color: #212529;
+}
+
+.plus-icon {
+    font-size: 1.1rem;
+    margin-right: 8px;
+}
+
+/* Form container */
+.form-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Exchange rate */
+.exchange-rate {
+    display: flex;
+    align-items: center;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.rate-icon {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+/* Default badge */
+.default-badge {
+    font-size: 0.7rem;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-left: auto;
+}
+
+/* Input group icon */
+.input-group-text {
+    background-color: #fff;
+    cursor: pointer;
+}
+.input-group-text:hover {
+    background-color: #f8f9fa;
+}
+
+/* Success message */
+.success-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+}
+
+.btn-new-transfer {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-new-transfer:hover {
+    background-color: #e64a19;
+}
