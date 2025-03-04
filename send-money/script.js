@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("Script is running!");
     // Get transaction ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const transactionId = urlParams.get('id');
