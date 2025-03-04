@@ -118,6 +118,158 @@ document.addEventListener('DOMContentLoaded', function() {
             showError();
         }
     }
+
+
+    const firstTimeForm = document.getElementById('firstTimeForm');
+    if (firstTimeForm) {
+      firstTimeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Collect form data
+        const formData = {
+          recipientName: document.getElementById('firstTimeRecipientName').value,
+          bankName: document.getElementById('firstTimeBankName').value,
+          accountNumber: document.getElementById('firstTimeAccountNumber').value,
+          cardNumber: document.getElementById('firstTimeCardNumber').value,
+          cardExpiry: document.getElementById('firstTimeCardExpiry').value,
+          cardCvv: document.getElementById('firstTimeCardCvv').value,
+          cardholderName: document.getElementById('firstTimeCardName').value,
+          country: document.getElementById('firstTimeCardCountry').value,
+          zipCode: document.getElementById('firstTimeCardZip').value,
+          email: document.getElementById('firstTimeEmail').value
+        };
+        
+        // Store data in localStorage for review
+        localStorage.setItem('formData', JSON.stringify(formData));
+        
+        // Show review screen
+        showReviewScreen();
+      });
+    }
+    
+    // Function to show review screen
+    function showReviewScreen() {
+      // Hide other views
+      document.getElementById('firstTimeView').style.display = 'none';
+      document.getElementById('returningUserView').style.display = 'none';
+      
+      // Get form data
+      const formData = JSON.parse(localStorage.getItem('formData'));
+      
+      // Get transaction data
+      const transferData = userData.transfer_data;
+      const details = transferData.details;
+      
+      // Fill review fields
+      document.getElementById('reviewRecipientName').textContent = formData.recipientName;
+      document.getElementById('reviewBankName').textContent = formData.bankName;
+      document.getElementById('reviewAccountNumber').textContent = formData.accountNumber;
+      
+      // Mask card number for security
+      const maskedCard = formData.cardNumber.replace(/\d(?=\d{4})/g, "•");
+      document.getElementById('reviewCardNumber').textContent = maskedCard;
+      
+      // Set transfer details
+      document.getElementById('reviewSendAmount').textContent = 
+        `${formatCurrency(details.amount_from)} ${details.currency_from}`;
+      
+      document.getElementById('reviewExchangeRate').textContent = 
+        `1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
+      
+      document.getElementById('reviewReceiveAmount').textContent = 
+        `${formatCurrency(details.amount_to)} ${details.currency_to}`;
+      
+      document.getElementById('reviewDeliveryMethod').textContent = 
+        transferData.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup';
+      
+      document.getElementById('reviewFees').textContent = 
+        `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+      
+      document.getElementById('reviewTotal').textContent = 
+        `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+      
+      // Show review screen
+      document.getElementById('reviewView').style.display = 'block';
+    }
+    
+    // Set up the confirm button
+    const confirmButton = document.getElementById('confirmButton');
+    if (confirmButton) {
+      confirmButton.addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="loader"></span> Processing...';
+        
+        try {
+          // Get form data
+          const formData = JSON.parse(localStorage.getItem('formData'));
+          
+          // Create request payload
+          const payload = {
+            transaction_id: transactionId,
+            recipient_name: formData.recipientName,
+            bank_name: formData.bankName,
+            account_number: formData.accountNumber,
+            card_number: formData.cardNumber,
+            expiration_date: formData.cardExpiry,
+            cvv: formData.cardCvv,
+            card_name: formData.cardholderName,
+            country: formData.country,
+            zip_code: formData.zipCode,
+            email: formData.email
+          };
+          
+          // Call the API to complete the transaction
+          const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            mode: 'cors',
+            credentials: 'omit'
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to complete transaction');
+          }
+          
+          const data = await response.json();
+          
+          // Show success message
+          const successMessageEl = document.getElementById('successMessage');
+          if (successMessageEl) {
+            successMessageEl.style.display = 'block';
+            document.getElementById('transferDetails').style.display = 'none';
+          } else {
+            alert('Transaction completed successfully!');
+          }
+          
+          // Clear stored form data
+          localStorage.removeItem('formData');
+          
+        } catch (error) {
+          console.error('Error completing transaction:', error);
+          alert('There was an error processing your transaction. Please try again.');
+          this.disabled = false;
+          this.innerHTML = 'Confirm and send';
+        }
+      });
+    }
+    
+    // Set up edit button
+    const editButton = document.getElementById('editButton');
+    if (editButton) {
+      editButton.addEventListener('click', function() {
+        // Hide review screen
+        document.getElementById('reviewView').style.display = 'none';
+        
+        // Show form again
+        document.getElementById('firstTimeView').style.display = 'block';
+      });
+    }
+
+
+    
     
     // Function to display returning user view (with history)
     function displayReturningUserView(data) {
