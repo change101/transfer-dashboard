@@ -1,3 +1,5 @@
+// transfer-dashboard/send-money/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Script is running!");
     // Get transaction ID from URL
