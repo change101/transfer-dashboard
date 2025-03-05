@@ -625,3 +625,120 @@ body {
 .edit-btn:hover {
   background-color: #f1f7ff;
 }
+
+
+
+/* View button */
+.view-button {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #0d6efd;
+}
+
+/* Style for recipient and payment option containers */
+.recipient-option, .payment-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recipient-option:hover, .payment-option:hover {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.recipient-option.selected, .payment-option.selected {
+    background-color: #e8f0fe;
+    border-color: #4285f4;
+}
+
+/* Details view container */
+#viewDetailsContainer {
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.recipient-detail-item, .payment-detail-item {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Delete and back buttons */
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    color: #6c757d;
+    border: 1px solid #6c757d;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+}
+
+/* Button loading spinner */
+.spinner-border-sm {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
