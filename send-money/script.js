@@ -24,6 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // ? 'http://localhost:5001'  // Use localhost:5001 for local development
     // : window.location.origin;  // Otherwise use the same origin as the page
 
+    const newTransferBtn = document.querySelector('.btn-new-transfer');
+    if (newTransferBtn) {
+        newTransferBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            redirectToWhatsApp();
+        });
+    }
     
     console.log("Using API base URL:", API_BASE_URL);
     
@@ -147,9 +154,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create WhatsApp deeplink - it will open the WhatsApp chat with your number
         const whatsappLink = `https://wa.me/${whatsappPhone}?text=I%20want%20to%20start%20a%20new%20transfer`;
+
+
+        // Add event listeners for WhatsApp redirection after transaction completion
+        const newTransferBtn = document.querySelector('.btn-new-transfer');
+        if (newTransferBtn) {
+            newTransferBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                redirectToWhatsApp();
+            });
+        }
+
         
         // Redirect to WhatsApp
         window.location.href = whatsappLink;
+
+        
     }
 
 
@@ -165,6 +185,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (returningView) {
                 returningView.style.display = 'none';
             }
+
+            successMessage.style.display = 'block';
+
+            // Add these lines right after it:
+            // Set up WhatsApp redirect for "Send another transfer" button
+            const newTransferBtn = document.querySelector('.btn-new-transfer');
+            if (newTransferBtn) {
+                newTransferBtn.addEventListener('click', redirectToWhatsApp);
+            }
+            
         } else {
             // If there's no first-time view in the HTML, log an error
             console.error("First-time user view element not found in the DOM");
@@ -760,6 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showRecipientDetails(recipientId, userHistory);
             });
         });
+        
         
         // Add event listeners for payment method view buttons
         const paymentViewButtons = document.querySelectorAll('.payment-option .view-button');
@@ -1401,7 +1432,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     alert('Transaction completed successfully!');
                 }
-                
+
+                const newTransferBtn = document.querySelector('.btn-new-transfer');
+                if (newTransferBtn) {
+                    newTransferBtn.addEventListener('click', redirectToWhatsApp);
+                }
+                                
                 // Clear form data
                 localStorage.removeItem('formData');
                 
