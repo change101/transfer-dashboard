@@ -523,6 +523,9 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteButton.disabled = true;
             deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
             
+            // Log for debugging
+            console.log(`Attempting to delete recipient: ${recipientId}`);
+            
             // Make API call to delete recipient
             const response = await fetch(`${API_BASE_URL}/api/recipient/${recipientId}`, {
                 method: 'DELETE',
@@ -531,14 +534,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            const result = await response.json();
+            // Log response for debugging
+            console.log('Delete response status:', response.status);
             
-            if (result.status === 'success') {
+            // Try to parse response as JSON
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('Delete response text:', responseText);
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error('Failed to parse server response');
+            }
+            
+            if (result && result.status === 'success') {
+                alert('Recipient deleted successfully.');
+                
                 // Remove recipient from the UI
                 // The simplest way is to reload the page
                 location.reload();
             } else {
-                throw new Error(result.message || 'Failed to delete recipient');
+                const errorMessage = result?.message || 'Unknown error';
+                throw new Error(`Failed to delete recipient: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Error deleting recipient:', error);
@@ -550,6 +568,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteButton.disabled = false;
                 deleteButton.textContent = 'Delete';
             }
+            
+            // Return to the recipient list view
+            const viewDetailsContainer = document.getElementById('viewDetailsContainer');
+            const returningView = document.getElementById('returningUserView');
+            
+            if (viewDetailsContainer) viewDetailsContainer.style.display = 'none';
+            if (returningView) returningView.style.display = 'block';
         }
     }
     
@@ -561,6 +586,9 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteButton.disabled = true;
             deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
             
+            // Log for debugging
+            console.log(`Attempting to delete payment method: ${paymentId}`);
+            
             // Make API call to delete payment method
             const response = await fetch(`${API_BASE_URL}/api/payment-method/${paymentId}`, {
                 method: 'DELETE',
@@ -569,14 +597,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            const result = await response.json();
+            // Log response for debugging
+            console.log('Delete response status:', response.status);
             
-            if (result.status === 'success') {
+            // Try to parse response as JSON
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('Delete response text:', responseText);
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error('Failed to parse server response');
+            }
+            
+            if (result && result.status === 'success') {
+                alert('Payment method deleted successfully.');
+                
                 // Remove payment method from the UI
                 // The simplest way is to reload the page
                 location.reload();
             } else {
-                throw new Error(result.message || 'Failed to delete payment method');
+                const errorMessage = result?.message || 'Unknown error';
+                throw new Error(`Failed to delete payment method: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Error deleting payment method:', error);
@@ -588,8 +631,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteButton.disabled = false;
                 deleteButton.textContent = 'Delete';
             }
+            
+            // Return to the payment list view
+            const viewDetailsContainer = document.getElementById('viewDetailsContainer');
+            const returningView = document.getElementById('returningUserView');
+            
+            if (viewDetailsContainer) viewDetailsContainer.style.display = 'none';
+            if (returningView) returningView.style.display = 'block';
         }
     }
+
+
+
+
+    
+    
+   
 
 
 
