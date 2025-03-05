@@ -297,6 +297,55 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up event listeners
         setupReturningUserEventListeners(userHistory);
     }
+
+
+    // Add this function to manually add a new recipient to the UI
+    function addRecipientToUI(recipient) {
+        const recipientsContainer = document.querySelector('.section-header:contains("Recipient")').parentElement;
+        
+        // Get the add new button element (to insert before it)
+        const addNewBtn = document.getElementById('addRecipientBtn');
+        
+        // Create the new recipient element
+        const newRecipientElement = document.createElement('div');
+        newRecipientElement.className = 'recipient-option';
+        newRecipientElement.setAttribute('data-id', recipient.id);
+        
+        // Format account number for display
+        const lastFour = recipient.bank_account_number 
+            ? `*${recipient.bank_account_number.slice(-4)}` 
+            : '';
+        
+        // Set inner HTML
+        newRecipientElement.innerHTML = `
+            <div class="avatar">${recipient.name.charAt(0)}</div>
+            <div class="recipient-details">
+                <div class="recipient-name">${recipient.name}</div>
+                <div class="recipient-country">${lastFour}</div>
+            </div>
+        `;
+        
+        // Add click event listener
+        newRecipientElement.addEventListener('click', function() {
+            // Remove selected class from all options
+            document.querySelectorAll('.recipient-option').forEach(opt => 
+                opt.classList.remove('selected'));
+            
+            // Add selected class to this option
+            this.classList.add('selected');
+            
+            // Store selected recipient ID
+            localStorage.setItem('selectedRecipientId', recipient.id);
+            localStorage.setItem('selectedRecipient', JSON.stringify(recipient));
+        });
+        
+        // Insert the new recipient before the add new button
+        recipientsContainer.insertBefore(newRecipientElement, addNewBtn);
+        
+        // Select this new recipient
+        newRecipientElement.click();
+    }
+
     
     // Function to set up event listeners for returning user view
     function setupReturningUserEventListeners(userHistory) {
@@ -455,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get transfer data and user data
             const transferData = userData.transfer_data;
             
-            // Ensure we have a user_id - CRITICAL FIX
+            // Ensure we have a user_id
             if (!userData.user_id) {
                 console.error('No user_id found in userData!', userData);
                 throw new Error('Missing user ID. Please try again.');
@@ -487,21 +536,67 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Recipient save result:', result);
             
             if (result.status === 'success') {
-                // Store newly created recipient
-                localStorage.setItem('selectedRecipientId', result.recipient.id);
-                localStorage.setItem('selectedRecipient', JSON.stringify(result.recipient));
+                // Create the recipient object from API response
+                const newRecipient = result.recipient;
                 
-                // Hide form
+                // Make sure it has all needed properties
+                if (!newRecipient.bank_account_number) {
+                    newRecipient.bank_account_number = accountNumber;
+                }
+                if (!newRecipient.bank_name) {
+                    newRecipient.bank_name = bankName;
+                }
+                
+                // Hide add recipient form
                 document.getElementById('addRecipientForm').style.display = 'none';
                 
-                // Show returning view
+                // Show the returning user view
                 const returningView = document.getElementById('returningUserView');
                 if (returningView) {
                     returningView.style.display = 'block';
                 }
                 
-                // Refresh the page to show the updated recipient list
-                location.reload();
+                // Two options:
+                // 1. Simpler but less smooth: Reload the page to refresh data
+                // location.reload();
+                
+                // 2. More complex but smoother: Update UI without refresh
+                // Add the new recipient to UI if the container exists
+                try {
+                    console.log("Attempting to update UI with new recipient:", newRecipient);
+                    
+                    // Add to userData for future reference
+                    if (!userData.user_history) {
+                        userData.user_history = { recipients: [], payment_methods: [] };
+                    }
+                    
+                    if (!userData.user_history.recipients) {
+                        userData.user_history.recipients = [];
+                    }
+                    
+                    // Add to the list (at the beginning)
+                    userData.user_history.recipients.unshift(newRecipient);
+                    
+                    // Refresh the UI
+                    const recipientsContainer = document.querySelector('.section-header h3').parentElement;
+                    if (recipientsContainer) {
+                        // Regenerate the recipients HTML
+                        setupReturningUserView(userData.user_history, userData.transfer_data);
+                        
+                        // Select the first recipient (should be the new one)
+                        const firstRecipient = document.querySelector('.recipient-option');
+                        if (firstRecipient) {
+                            firstRecipient.click();
+                        }
+                    } else {
+                        console.warn("Recipients container not found, cannot update UI");
+                        // Fall back to reload
+                        location.reload();
+                    }
+                } catch (uiError) {
+                    console.error("Error updating UI, falling back to reload:", uiError);
+                    location.reload();
+                }
             } else {
                 throw new Error(result.message || 'Failed to save recipient');
             }
@@ -513,6 +608,10 @@ document.addEventListener('DOMContentLoaded', function() {
             saveButton.innerHTML = 'Save';
         }
     }
+
+
+
+    
     
     // Function to show the add payment method form
     function showAddPaymentForm() {
