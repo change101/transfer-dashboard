@@ -138,6 +138,26 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
     }
+
+
+    // Function to set up the first-time user view
+    function setupFirstTimeUserView() {
+        // Show the existing first-time view if it exists
+        const firstTimeView = document.getElementById('firstTimeView');
+        if (firstTimeView) {
+            firstTimeView.style.display = 'block';
+            
+            // Hide returning user view if it exists
+            const returningView = document.getElementById('returningUserView');
+            if (returningView) {
+                returningView.style.display = 'none';
+            }
+        } else {
+            // If there's no first-time view in the HTML, log an error
+            console.error("First-time user view element not found in the DOM");
+            showError("Error loading the form. Please try again.");
+        }
+    }
     
     // Function to set up the returning user view with history
     function setupReturningUserView(userHistory, transferData) {
