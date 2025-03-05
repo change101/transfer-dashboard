@@ -75,8 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'success' && data.transfer_data && data.transfer_data.details) {
                 userData = data;
                 
-                // Show first-time view
-                displayFirstTimeView(data);
+                // Store user ID if present
+                if (data.user_id) {
+                    localStorage.setItem('user_id', data.user_id);
+                }
+                
+                // Display appropriate view based on user history
+                displayAppropriateView(data);
             } else {
                 console.error("Data format incorrect:", data);
                 showError("The transaction data format is invalid. Please try again.");
@@ -100,6 +105,580 @@ document.addEventListener('DOMContentLoaded', function() {
         transferContent.style.display = 'block';
         firstTimeView.style.display = 'block';
     }
+
+    // Function to display either first-time or returning user view
+    function displayAppropriateView(data) {
+        const transferData = data.transfer_data;
+        const details = transferData.details;
+        
+        // Fill in transaction data (amounts, rates, etc.)
+        fillTransactionDetails(transferData, details);
+        
+        // Check if we have user history
+        const hasHistory = data.user_history && 
+                          (data.user_history.recipients?.length > 0 || 
+                           data.user_history.payment_methods?.length > 0);
+                           
+        // Show user interface based on history
+        if (hasHistory) {
+            setupReturningUserView(data.user_history, transferData);
+        } else {
+            setupFirstTimeUserView();
+        }
+        
+        // Hide loading, show content
+        loadingContainer.style.display = 'none';
+        transferContent.style.display = 'block';
+    }
+    
+    // Function to set up the returning user view with history
+    function setupReturningUserView(userHistory, transferData) {
+        // Create/update the returning user container if it doesn't exist
+        let returningView = document.getElementById('returningUserView');
+        if (!returningView) {
+            returningView = document.createElement('div');
+            returningView.id = 'returningUserView';
+            transferContent.appendChild(returningView);
+        }
+        
+        // Create HTML for recipients
+        let recipientsHTML = '<div class="section-header"><h3>Recipient</h3></div>';
+        
+        // Add previous recipients if any
+        if (userHistory.recipients && userHistory.recipients.length > 0) {
+            userHistory.recipients.forEach(recipient => {
+                const lastFour = recipient.bank_account_number 
+                    ? `*${recipient.bank_account_number.slice(-4)}` 
+                    : '';
+                
+                recipientsHTML += `
+                    <div class="recipient-option" data-id="${recipient.id}">
+                        <div class="avatar">${recipient.name.charAt(0)}</div>
+                        <div class="recipient-details">
+                            <div class="recipient-name">${recipient.name}</div>
+                            <div class="recipient-country">${lastFour}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Add button to add new recipient
+        recipientsHTML += `
+            <div class="add-new-btn" id="addRecipientBtn">
+                <span class="plus-icon">+</span> Add new recipient
+            </div>
+        `;
+        
+        // Create HTML for payment methods
+        let paymentHTML = '<div class="section-header"><h3>Payment method</h3></div>';
+        
+        // Add previous payment methods if any
+        if (userHistory.payment_methods && userHistory.payment_methods.length > 0) {
+            userHistory.payment_methods.forEach(payment => {
+                const lastFour = payment.card_number 
+                    ? `*${payment.card_number.slice(-4)}` 
+                    : '';
+                
+                const isDefault = payment.is_default 
+                    ? '<span class="default-badge">Default</span>' 
+                    : '';
+                
+                paymentHTML += `
+                    <div class="payment-option" data-id="${payment.id}">
+                        <div class="card-icon card-generic">💳</div>
+                        <div class="payment-details">
+                            <div class="card-type">${payment.card_type}</div>
+                            <div class="card-number">${lastFour}</div>
+                        </div>
+                        ${isDefault}
+                    </div>
+                `;
+            });
+        }
+        
+        // Add button to add new payment method
+        paymentHTML += `
+            <div class="add-new-btn" id="addPaymentBtn">
+                <span class="plus-icon">+</span> Add new payment method
+            </div>
+        `;
+        
+        // Add transfer details summary
+        const transferDetailsHTML = `
+            <div class="section-header"><h3>Transfer</h3></div>
+            <div class="amount-section">
+                <div class="amount-left">
+                    <label>You send</label>
+                    <div class="amount send-amount">${formatCurrency(transferData.details.amount_from)}</div>
+                </div>
+                <div class="amount-right">
+                    <span class="send-currency">${transferData.details.currency_from}</span>
+                </div>
+            </div>
+            
+            <div class="exchange-rate">
+                <div class="rate-icon">↔</div>
+                <span class="exchange-rate-value">1 ${transferData.details.currency_from} = ${transferData.details.exchange_rate} ${transferData.details.currency_to}</span>
+            </div>
+            
+            <div class="amount-section">
+                <div class="amount-left">
+                    <label>Recipient receives</label>
+                    <div class="amount receive-amount">${formatCurrency(transferData.details.amount_to)}</div>
+                </div>
+                <div class="amount-right">
+                    <span class="receive-currency">${transferData.details.currency_to}</span>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <label>Delivery method</label>
+                <div class="select-field">
+                    <span class="delivery-method">${transferData.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup'}</span>
+                    <span class="chevron-down">▼</span>
+                </div>
+            </div>
+            
+            <div class="fee-section">
+                <div class="fee-line">
+                    <span>Transfer fees</span>
+                    <span class="transfer-fee">${formatCurrency(transferData.details.transfer_fee)} ${transferData.details.currency_from}</span>
+                </div>
+                <div class="total-line">
+                    <span>Total</span>
+                    <span class="total-amount">${formatCurrency(transferData.details.total_amount)} ${transferData.details.currency_from}</span>
+                </div>
+            </div>
+            
+            <div class="action-section">
+                <button type="button" id="continueSendButton" class="continue-btn">Send money</button>
+            </div>
+        `;
+        
+        // Combine all HTML
+        returningView.innerHTML = recipientsHTML + paymentHTML + transferDetailsHTML;
+        returningView.style.display = 'block';
+        
+        // Hide the first-time view if it exists
+        const firstTimeView = document.getElementById('firstTimeView');
+        if (firstTimeView) {
+            firstTimeView.style.display = 'none';
+        }
+        
+        // Set up event listeners
+        setupReturningUserEventListeners(userHistory);
+    }
+    
+    // Function to set up event listeners for returning user view
+    function setupReturningUserEventListeners(userHistory) {
+        // Add event listeners for recipient selection
+        const recipientOptions = document.querySelectorAll('.recipient-option');
+        recipientOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                recipientOptions.forEach(opt => opt.classList.remove('selected'));
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Store selected recipient ID
+                const recipientId = this.dataset.id;
+                localStorage.setItem('selectedRecipientId', recipientId);
+                
+                // Find recipient data
+                const selectedRecipient = userHistory.recipients.find(r => r.id === recipientId);
+                if (selectedRecipient) {
+                    localStorage.setItem('selectedRecipient', JSON.stringify(selectedRecipient));
+                }
+            });
+        });
+        
+        // Add event listeners for payment method selection
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Store selected payment method ID
+                const paymentId = this.dataset.id;
+                localStorage.setItem('selectedPaymentId', paymentId);
+                
+                // Find payment method data
+                const selectedPayment = userHistory.payment_methods.find(p => p.id === paymentId);
+                if (selectedPayment) {
+                    localStorage.setItem('selectedPayment', JSON.stringify(selectedPayment));
+                }
+            });
+        });
+        
+        // Select the first option in each category by default
+        if (recipientOptions.length > 0) {
+            recipientOptions[0].click();
+        }
+        
+        if (paymentOptions.length > 0) {
+            paymentOptions[0].click();
+        }
+        
+        // Add event listener for "Add new recipient" button
+        const addRecipientBtn = document.getElementById('addRecipientBtn');
+        if (addRecipientBtn) {
+            addRecipientBtn.addEventListener('click', showAddRecipientForm);
+        }
+        
+        // Add event listener for "Add new payment method" button
+        const addPaymentBtn = document.getElementById('addPaymentBtn');
+        if (addPaymentBtn) {
+            addPaymentBtn.addEventListener('click', showAddPaymentForm);
+        }
+        
+        // Add event listener for "Send money" button
+        const sendMoneyBtn = document.getElementById('continueSendButton');
+        if (sendMoneyBtn) {
+            sendMoneyBtn.addEventListener('click', processSendMoney);
+        }
+    }
+    
+    // Function to show the add recipient form
+    function showAddRecipientForm() {
+        // Hide returning user view
+        const returningView = document.getElementById('returningUserView');
+        if (returningView) {
+            returningView.style.display = 'none';
+        }
+        
+        // Show add recipient form
+        let addRecipientForm = document.getElementById('addRecipientForm');
+        
+        if (!addRecipientForm) {
+            // Create form if it doesn't exist
+            addRecipientForm = document.createElement('div');
+            addRecipientForm.id = 'addRecipientForm';
+            addRecipientForm.innerHTML = `
+                <div class="section-header">
+                    <h3>Add new recipient</h3>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Full name (as appears on government ID)</label>
+                    <input type="text" class="form-control" id="newRecipientName" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Bank name or code</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="newBankName" required>
+                        <span class="input-group-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Bank account number</label>
+                    <input type="text" class="form-control" id="newAccountNumber" required>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" id="cancelAddRecipient" class="btn btn-outline-secondary">Cancel</button>
+                    <button type="button" id="saveNewRecipient" class="btn btn-primary">Save</button>
+                </div>
+            `;
+            
+            transferContent.appendChild(addRecipientForm);
+            
+            // Add event listeners for buttons
+            document.getElementById('cancelAddRecipient').addEventListener('click', function() {
+                // Hide form and show returning user view
+                addRecipientForm.style.display = 'none';
+                if (returningView) {
+                    returningView.style.display = 'block';
+                }
+            });
+            
+            document.getElementById('saveNewRecipient').addEventListener('click', saveNewRecipient);
+        } else {
+            // If form exists, just show it
+            addRecipientForm.style.display = 'block';
+        }
+    }
+    
+    // Function to save new recipient
+    async function saveNewRecipient() {
+        const recipientName = document.getElementById('newRecipientName').value;
+        const bankName = document.getElementById('newBankName').value;
+        const accountNumber = document.getElementById('newAccountNumber').value;
+        
+        if (!recipientName || !bankName || !accountNumber) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        const saveButton = document.getElementById('saveNewRecipient');
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        
+        try {
+            // Get transfer data and user data
+            const transferData = userData.transfer_data;
+            
+            // Create request data
+            const requestData = {
+                user_id: userData.user_id || localStorage.getItem('user_id'),
+                full_name: recipientName,
+                country: transferData.country.toUpperCase(),
+                bank_name: bankName,
+                bank_account_number: accountNumber
+            };
+            
+            // Send to API
+            const response = await fetch(`${API_BASE_URL}/api/recipient`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Store newly created recipient
+                localStorage.setItem('selectedRecipientId', result.recipient.id);
+                localStorage.setItem('selectedRecipient', JSON.stringify(result.recipient));
+                
+                // Hide form
+                document.getElementById('addRecipientForm').style.display = 'none';
+                
+                // Show returning view
+                const returningView = document.getElementById('returningUserView');
+                if (returningView) {
+                    returningView.style.display = 'block';
+                }
+                
+                // Refresh the page to show the updated recipient list
+                // In a production app, you might want to update the UI without refreshing
+                location.reload();
+            } else {
+                throw new Error(result.message || 'Failed to save recipient');
+            }
+        } catch (error) {
+            console.error('Error saving recipient:', error);
+            alert(`Error: ${error.message || 'Failed to save recipient'}`);
+        } finally {
+            saveButton.disabled = false;
+            saveButton.innerHTML = 'Save';
+        }
+    }
+    
+    // Function to show the add payment method form
+    function showAddPaymentForm() {
+        // Hide returning user view
+        const returningView = document.getElementById('returningUserView');
+        if (returningView) {
+            returningView.style.display = 'none';
+        }
+        
+        // Show add payment form
+        let addPaymentForm = document.getElementById('addPaymentForm');
+        
+        if (!addPaymentForm) {
+            // Create form if it doesn't exist
+            addPaymentForm = document.createElement('div');
+            addPaymentForm.id = 'addPaymentForm';
+            addPaymentForm.innerHTML = `
+                <div class="section-header">
+                    <h3>Add new payment method</h3>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Card information</label>
+                    <input type="text" class="form-control" id="newCardNumber" placeholder="1234 1234 1234 1234" required>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col">
+                        <input type="text" class="form-control" id="newCardExpiry" placeholder="MM/YY" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="newCardCvv" placeholder="CVC" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Your full name (as appears on government ID)</label>
+                    <input type="text" class="form-control" id="newCardName" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Country or region</label>
+                    <input type="text" class="form-control" id="newCardCountry" value="United States" required>
+                </div>
+                
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="newCardZip" placeholder="ZIP" required>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" id="cancelAddPayment" class="btn btn-outline-secondary">Cancel</button>
+                    <button type="button" id="saveNewPayment" class="btn btn-primary">Save</button>
+                </div>
+            `;
+            
+            transferContent.appendChild(addPaymentForm);
+            
+            // Add event listeners for buttons
+            document.getElementById('cancelAddPayment').addEventListener('click', function() {
+                // Hide form and show returning user view
+                addPaymentForm.style.display = 'none';
+                if (returningView) {
+                    returningView.style.display = 'block';
+                }
+            });
+            
+            document.getElementById('saveNewPayment').addEventListener('click', saveNewPayment);
+        } else {
+            // If form exists, just show it
+            addPaymentForm.style.display = 'block';
+        }
+    }
+    
+    // Function to save new payment method
+    async function saveNewPayment() {
+        const cardNumber = document.getElementById('newCardNumber').value;
+        const cardExpiry = document.getElementById('newCardExpiry').value;
+        const cardCvv = document.getElementById('newCardCvv').value;
+        const cardName = document.getElementById('newCardName').value;
+        const cardCountry = document.getElementById('newCardCountry').value;
+        const cardZip = document.getElementById('newCardZip').value;
+        
+        if (!cardNumber || !cardExpiry || !cardCvv || !cardName || !cardCountry || !cardZip) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        const saveButton = document.getElementById('saveNewPayment');
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        
+        try {
+            // Create request data
+            const requestData = {
+                user_id: userData.user_id || localStorage.getItem('user_id'),
+                card_number: cardNumber,
+                card_type: 'Debit card',
+                expiration_date: cardExpiry,
+                cvv: cardCvv,
+                billing_name: cardName,
+                country: cardCountry,
+                zip_code: cardZip,
+                is_default: true
+            };
+            
+            // Send to API
+            const response = await fetch(`${API_BASE_URL}/api/payment-method`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Store newly created payment method
+                localStorage.setItem('selectedPaymentId', result.payment_method.id);
+                localStorage.setItem('selectedPayment', JSON.stringify(result.payment_method));
+                
+                // Hide form
+                document.getElementById('addPaymentForm').style.display = 'none';
+                
+                // Show returning view
+                const returningView = document.getElementById('returningUserView');
+                if (returningView) {
+                    returningView.style.display = 'block';
+                }
+                
+                // Refresh the page to show the updated payment method list
+                // In a production app, you might want to update the UI without refreshing
+                location.reload();
+            } else {
+                throw new Error(result.message || 'Failed to save payment method');
+            }
+        } catch (error) {
+            console.error('Error saving payment method:', error);
+            alert(`Error: ${error.message || 'Failed to save payment method'}`);
+        } finally {
+            saveButton.disabled = false;
+            saveButton.innerHTML = 'Save';
+        }
+    }
+    
+    // Function to process the send money action for returning users
+    async function processSendMoney() {
+        const sendButton = document.getElementById('continueSendButton');
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        
+        try {
+            // Get selected recipient and payment method
+            const recipientId = localStorage.getItem('selectedRecipientId');
+            const paymentId = localStorage.getItem('selectedPaymentId');
+            
+            if (!recipientId || !paymentId) {
+                throw new Error('Please select a recipient and payment method');
+            }
+            
+            // Create request data
+            const requestData = {
+                transaction_id: transactionId,
+                recipient_id: recipientId,
+                payment_method_id: paymentId
+            };
+            
+            // Send to API
+            const response = await fetch(`${API_BASE_URL}/api/complete-transaction`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Show success message
+                const returningView = document.getElementById('returningUserView');
+                if (returningView) {
+                    returningView.style.display = 'none';
+                }
+                
+                successMessage.style.display = 'block';
+                
+                // Clear stored data
+                localStorage.removeItem('selectedRecipientId');
+                localStorage.removeItem('selectedPaymentId');
+                localStorage.removeItem('selectedRecipient');
+                localStorage.removeItem('selectedPayment');
+            } else {
+                throw new Error(result.message || 'Failed to complete transaction');
+            }
+        } catch (error) {
+            console.error('Error processing transaction:', error);
+            alert(`Error: ${error.message || 'Failed to process transaction'}`);
+        } finally {
+            sendButton.disabled = false;
+            sendButton.innerHTML = 'Send money';
+        }
+    }
+
     
     // Function to fill transaction details
     function fillTransactionDetails(transferData, details) {
