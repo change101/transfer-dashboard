@@ -73,12 +73,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("API response data:", data);
             
             if (data.status === 'success' && data.transfer_data && data.transfer_data.details) {
+                // Set userData - store complete data object
                 userData = data;
                 
-                // Store user ID if present
-                if (data.user_id) {
-                    localStorage.setItem('user_id', data.user_id);
+                // Make sure user_id is set if present in user_history
+                if (data.user_history && data.user_history.user_id) {
+                    userData.user_id = data.user_history.user_id;
                 }
+                
+                // Check for user_id directly in data
+                if (data.user_id) {
+                    userData.user_id = data.user_id;
+                }
+                
+                console.log("User data set:", userData);
                 
                 // Display appropriate view based on user history
                 displayAppropriateView(data);
@@ -427,14 +435,24 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get transfer data and user data
             const transferData = userData.transfer_data;
             
+            // Ensure we have a user_id - CRITICAL FIX
+            if (!userData.user_id) {
+                console.error('No user_id found in userData!', userData);
+                throw new Error('Missing user ID. Please try again.');
+            }
+            
+            console.log('Using user_id:', userData.user_id);
+            
             // Create request data
             const requestData = {
-                user_id: userData.user_id || localStorage.getItem('user_id'),
+                user_id: userData.user_id,
                 full_name: recipientName,
                 country: transferData.country.toUpperCase(),
                 bank_name: bankName,
                 bank_account_number: accountNumber
             };
+            
+            console.log('Sending recipient data:', requestData);
             
             // Send to API
             const response = await fetch(`${API_BASE_URL}/api/recipient`, {
@@ -446,6 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const result = await response.json();
+            console.log('Recipient save result:', result);
             
             if (result.status === 'success') {
                 // Store newly created recipient
@@ -462,7 +481,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Refresh the page to show the updated recipient list
-                // In a production app, you might want to update the UI without refreshing
                 location.reload();
             } else {
                 throw new Error(result.message || 'Failed to save recipient');
@@ -567,9 +585,17 @@ document.addEventListener('DOMContentLoaded', function() {
         saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
         
         try {
+            // Ensure we have a user_id - CRITICAL FIX
+            if (!userData.user_id) {
+                console.error('No user_id found in userData!', userData);
+                throw new Error('Missing user ID. Please try again.');
+            }
+            
+            console.log('Using user_id:', userData.user_id);
+            
             // Create request data
             const requestData = {
-                user_id: userData.user_id || localStorage.getItem('user_id'),
+                user_id: userData.user_id,
                 card_number: cardNumber,
                 card_type: 'Debit card',
                 expiration_date: cardExpiry,
@@ -579,6 +605,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 zip_code: cardZip,
                 is_default: true
             };
+            
+            console.log('Sending payment method data:', requestData);
             
             // Send to API
             const response = await fetch(`${API_BASE_URL}/api/payment-method`, {
@@ -590,6 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const result = await response.json();
+            console.log('Payment method save result:', result);
             
             if (result.status === 'success') {
                 // Store newly created payment method
@@ -606,7 +635,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Refresh the page to show the updated payment method list
-                // In a production app, you might want to update the UI without refreshing
                 location.reload();
             } else {
                 throw new Error(result.message || 'Failed to save payment method');
