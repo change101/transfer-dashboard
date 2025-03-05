@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to set up the returning user view with history
+    // Updated recipient rendering with View/Delete option
     function setupReturningUserView(userHistory, transferData) {
         // Create/update the returning user container if it doesn't exist
         let returningView = document.getElementById('returningUserView');
@@ -185,6 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="recipient-details">
                             <div class="recipient-name">${recipient.name}</div>
                             <div class="recipient-country">${lastFour}</div>
+                        </div>
+                        <div class="view-button" data-id="${recipient.id}" title="View details">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zm-8 3.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+                            </svg>
                         </div>
                     </div>
                 `;
@@ -220,6 +226,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="card-number">${lastFour}</div>
                         </div>
                         ${isDefault}
+                        <div class="view-button" data-id="${payment.id}" title="View details">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zm-8 3.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+                            </svg>
+                        </div>
                     </div>
                 `;
             });
@@ -294,6 +305,14 @@ document.addEventListener('DOMContentLoaded', function() {
             firstTimeView.style.display = 'none';
         }
         
+        // Add the view details view container if it doesn't exist
+        if (!document.getElementById('viewDetailsContainer')) {
+            const viewDetailsContainer = document.createElement('div');
+            viewDetailsContainer.id = 'viewDetailsContainer';
+            viewDetailsContainer.style.display = 'none';
+            transferContent.appendChild(viewDetailsContainer);
+        }
+        
         // Set up event listeners
         setupReturningUserEventListeners(userHistory);
     }
@@ -346,13 +365,252 @@ document.addEventListener('DOMContentLoaded', function() {
         newRecipientElement.click();
     }
 
+
+
+
+    // Function to show recipient details with delete option
+    function showRecipientDetails(recipientId, userHistory) {
+        // Find the recipient
+        const recipient = userHistory.recipients.find(r => r.id === recipientId);
+        if (!recipient) {
+            console.error(`Recipient not found with ID: ${recipientId}`);
+            return;
+        }
+        
+        // Hide the returning user view
+        const returningView = document.getElementById('returningUserView');
+        if (returningView) {
+            returningView.style.display = 'none';
+        }
+        
+        // Get or create view details container
+        let viewDetailsContainer = document.getElementById('viewDetailsContainer');
+        if (!viewDetailsContainer) {
+            viewDetailsContainer = document.createElement('div');
+            viewDetailsContainer.id = 'viewDetailsContainer';
+            transferContent.appendChild(viewDetailsContainer);
+        }
+        
+        // Generate HTML for recipient details
+        viewDetailsContainer.innerHTML = `
+            <div class="section-header">
+                <h3>Recipient Details</h3>
+            </div>
+            
+            <div class="recipient-detail-item">
+                <div class="detail-label">Full name</div>
+                <div class="detail-value">${recipient.name}</div>
+            </div>
+            
+            <div class="recipient-detail-item">
+                <div class="detail-label">Country</div>
+                <div class="detail-value">${recipient.country || '-'}</div>
+            </div>
+            
+            <div class="recipient-detail-item">
+                <div class="detail-label">Bank name</div>
+                <div class="detail-value">${recipient.bank_name || '-'}</div>
+            </div>
+            
+            <div class="recipient-detail-item">
+                <div class="detail-label">Account number</div>
+                <div class="detail-value">${recipient.bank_account_number || '-'}</div>
+            </div>
+            
+            <div class="form-buttons">
+                <button type="button" id="cancelViewRecipient" class="btn btn-outline-secondary">Back</button>
+                <button type="button" id="deleteRecipient" class="btn btn-danger">Delete</button>
+            </div>
+        `;
+        
+        // Show the details container
+        viewDetailsContainer.style.display = 'block';
+        
+        // Add event listeners for buttons
+        document.getElementById('cancelViewRecipient').addEventListener('click', function() {
+            viewDetailsContainer.style.display = 'none';
+            returningView.style.display = 'block';
+        });
+        
+        document.getElementById('deleteRecipient').addEventListener('click', function() {
+            if (confirm(`Are you sure you want to delete recipient ${recipient.name}?`)) {
+                deleteRecipient(recipientId);
+            }
+        });
+    }
+    
+    // Function to show payment method details with delete option
+    function showPaymentDetails(paymentId, userHistory) {
+        // Find the payment method
+        const payment = userHistory.payment_methods.find(p => p.id === paymentId);
+        if (!payment) {
+            console.error(`Payment method not found with ID: ${paymentId}`);
+            return;
+        }
+        
+        // Hide the returning user view
+        const returningView = document.getElementById('returningUserView');
+        if (returningView) {
+            returningView.style.display = 'none';
+        }
+        
+        // Get or create view details container
+        let viewDetailsContainer = document.getElementById('viewDetailsContainer');
+        if (!viewDetailsContainer) {
+            viewDetailsContainer = document.createElement('div');
+            viewDetailsContainer.id = 'viewDetailsContainer';
+            transferContent.appendChild(viewDetailsContainer);
+        }
+        
+        // Mask all but last 4 digits of card number
+        const maskedCard = payment.card_number 
+            ? `**** **** **** ${payment.card_number.slice(-4)}` 
+            : 'Unknown card';
+        
+        // Generate HTML for payment details
+        viewDetailsContainer.innerHTML = `
+            <div class="section-header">
+                <h3>Payment Method Details</h3>
+            </div>
+            
+            <div class="payment-detail-item">
+                <div class="detail-label">Card type</div>
+                <div class="detail-value">${payment.card_type || 'Debit card'}</div>
+            </div>
+            
+            <div class="payment-detail-item">
+                <div class="detail-label">Card number</div>
+                <div class="detail-value">${maskedCard}</div>
+            </div>
+            
+            <div class="payment-detail-item">
+                <div class="detail-label">Expiration date</div>
+                <div class="detail-value">${payment.expiration_date || '-'}</div>
+            </div>
+            
+            <div class="payment-detail-item">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">${payment.is_default ? 'Default payment method' : 'Alternative payment method'}</div>
+            </div>
+            
+            <div class="form-buttons">
+                <button type="button" id="cancelViewPayment" class="btn btn-outline-secondary">Back</button>
+                <button type="button" id="deletePayment" class="btn btn-danger">Delete</button>
+            </div>
+        `;
+        
+        // Show the details container
+        viewDetailsContainer.style.display = 'block';
+        
+        // Add event listeners for buttons
+        document.getElementById('cancelViewPayment').addEventListener('click', function() {
+            viewDetailsContainer.style.display = 'none';
+            returningView.style.display = 'block';
+        });
+        
+        document.getElementById('deletePayment').addEventListener('click', function() {
+            if (confirm(`Are you sure you want to delete payment method ending in ${payment.card_number.slice(-4)}?`)) {
+                deletePaymentMethod(paymentId);
+            }
+        });
+    }
+    
+    // Function to delete a recipient
+    async function deleteRecipient(recipientId) {
+        try {
+            // Show loading indicator
+            const deleteButton = document.getElementById('deleteRecipient');
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+            
+            // Make API call to delete recipient
+            const response = await fetch(`${API_BASE_URL}/api/recipient/${recipientId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Remove recipient from the UI
+                // The simplest way is to reload the page
+                location.reload();
+            } else {
+                throw new Error(result.message || 'Failed to delete recipient');
+            }
+        } catch (error) {
+            console.error('Error deleting recipient:', error);
+            alert(`Error: ${error.message || 'Failed to delete recipient'}`);
+            
+            // Reset button state
+            const deleteButton = document.getElementById('deleteRecipient');
+            if (deleteButton) {
+                deleteButton.disabled = false;
+                deleteButton.textContent = 'Delete';
+            }
+        }
+    }
+    
+    // Function to delete a payment method
+    async function deletePaymentMethod(paymentId) {
+        try {
+            // Show loading indicator
+            const deleteButton = document.getElementById('deletePayment');
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+            
+            // Make API call to delete payment method
+            const response = await fetch(`${API_BASE_URL}/api/payment-method/${paymentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Remove payment method from the UI
+                // The simplest way is to reload the page
+                location.reload();
+            } else {
+                throw new Error(result.message || 'Failed to delete payment method');
+            }
+        } catch (error) {
+            console.error('Error deleting payment method:', error);
+            alert(`Error: ${error.message || 'Failed to delete payment method'}`);
+            
+            // Reset button state
+            const deleteButton = document.getElementById('deletePayment');
+            if (deleteButton) {
+                deleteButton.disabled = false;
+                deleteButton.textContent = 'Delete';
+            }
+        }
+    }
+
+
+
+
+
+
+
+    
+    
     
     // Function to set up event listeners for returning user view
     function setupReturningUserEventListeners(userHistory) {
         // Add event listeners for recipient selection
         const recipientOptions = document.querySelectorAll('.recipient-option');
         recipientOptions.forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', function(e) {
+                // Don't trigger if clicking on the view button
+                if (e.target.closest('.view-button') || e.target.closest('svg') || e.target.closest('path')) {
+                    return;
+                }
+                
                 // Remove selected class from all options
                 recipientOptions.forEach(opt => opt.classList.remove('selected'));
                 // Add selected class to clicked option
@@ -373,7 +631,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listeners for payment method selection
         const paymentOptions = document.querySelectorAll('.payment-option');
         paymentOptions.forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', function(e) {
+                // Don't trigger if clicking on the view button
+                if (e.target.closest('.view-button') || e.target.closest('svg') || e.target.closest('path')) {
+                    return;
+                }
+                
                 // Remove selected class from all options
                 paymentOptions.forEach(opt => opt.classList.remove('selected'));
                 // Add selected class to clicked option
@@ -417,7 +680,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sendMoneyBtn) {
             sendMoneyBtn.addEventListener('click', processSendMoney);
         }
+        
+        // Add event listeners for recipient view buttons
+        const recipientViewButtons = document.querySelectorAll('.recipient-option .view-button');
+        recipientViewButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent triggering the parent click event
+                const recipientId = this.dataset.id;
+                showRecipientDetails(recipientId, userHistory);
+            });
+        });
+        
+        // Add event listeners for payment method view buttons
+        const paymentViewButtons = document.querySelectorAll('.payment-option .view-button');
+        paymentViewButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent triggering the parent click event
+                const paymentId = this.dataset.id;
+                showPaymentDetails(paymentId, userHistory);
+            });
+        });
     }
+
+
+
+
+
+    
     
     // Function to show the add recipient form
     function showAddRecipientForm() {
