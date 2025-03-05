@@ -140,6 +140,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+    // Update number 
+    function redirectToWhatsApp() {
+        // Get the WhatsApp phone number from environment
+        const whatsappPhone = '12292902911'; // Replace with your actual WhatsApp number (no + or spaces)
+        
+        // Create WhatsApp deeplink - it will open the WhatsApp chat with your number
+        const whatsappLink = `https://wa.me/${whatsappPhone}?text=I%20want%20to%20start%20a%20new%20transfer`;
+        
+        // Redirect to WhatsApp
+        window.location.href = whatsappLink;
+    }
+
+
     // Function to set up the first-time user view
     function setupFirstTimeUserView() {
         // Show the existing first-time view if it exists
