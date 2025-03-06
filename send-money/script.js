@@ -147,6 +147,165 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+
+    // Show security code screen
+    function showSecurityCodeScreen() {
+        // Hide returning user view or review view
+        const returningView = document.getElementById('returningUserView');
+        if (returningView) {
+            returningView.style.display = 'none';
+        }
+        
+        const reviewView = document.getElementById('reviewView');
+        if (reviewView) {
+            reviewView.style.display = 'none';
+        }
+        
+        // Reset security code input and error
+        const securityCodeInput = document.getElementById('securityCode');
+        if (securityCodeInput) {
+            securityCodeInput.value = '';
+            securityCodeInput.classList.remove('is-invalid');
+        }
+        
+        const securityCodeError = document.getElementById('securityCodeError');
+        if (securityCodeError) {
+            securityCodeError.style.display = 'none';
+        }
+        
+        // Disable confirm button initially
+        const confirmBtn = document.getElementById('confirmPaymentBtn');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+        }
+        
+        // Show security code screen
+        const securityCodeScreen = document.getElementById('securityCodeScreen');
+        if (securityCodeScreen) {
+            securityCodeScreen.style.display = 'block';
+        }
+    }
+
+
+
+
+
+    // Initialize security code screen event listeners
+    function initSecurityCodeScreen() {
+        const securityCodeInput = document.getElementById('securityCode');
+        const confirmBtn = document.getElementById('confirmPaymentBtn');
+        const securityCodeError = document.getElementById('securityCodeError');
+        
+        if (securityCodeInput && confirmBtn) {
+            // Enable/disable button based on input
+            securityCodeInput.addEventListener('input', function() {
+                // Remove error styling if user types again
+                securityCodeInput.classList.remove('is-invalid');
+                securityCodeError.style.display = 'none';
+                
+                // Enable button if input has value
+                confirmBtn.disabled = (this.value.trim().length === 0);
+            });
+            
+            // Toggle password visibility
+            const eyeIcon = document.querySelector('#securityCodeScreen .input-group-text');
+            if (eyeIcon) {
+                eyeIcon.addEventListener('click', function() {
+                    securityCodeInput.type = securityCodeInput.type === 'password' ? 'text' : 'password';
+                });
+            }
+            
+            // Handle confirm button click
+            confirmBtn.addEventListener('click', function() {
+                const code = securityCodeInput.value.trim();
+                
+                // For demo purposes, let's consider valid codes are 3-4 digits
+                const isValid = /^\d{3,4}$/.test(code);
+                
+                if (!isValid) {
+                    // Show error styling
+                    securityCodeInput.classList.add('is-invalid');
+                    securityCodeError.style.display = 'block';
+                    return;
+                }
+                
+                // Show loading state on button
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                // Proceed with transaction (call the complete transaction function)
+                completeTransaction();
+            });
+        }
+    }
+
+
+
+
+
+    // Function to complete the transaction after security code verification
+    function completeTransaction() {
+        // Get selected recipient and payment method
+        const recipientId = localStorage.getItem('selectedRecipientId');
+        const paymentId = localStorage.getItem('selectedPaymentId');
+        
+        // Create request data
+        const requestData = {
+            transaction_id: transactionId,
+            recipient_id: recipientId,
+            payment_method_id: paymentId
+        };
+        
+        // Send to API
+        fetch(`${API_BASE_URL}/api/complete-transaction`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                // Hide all views
+                const securityCodeScreen = document.getElementById('securityCodeScreen');
+                if (securityCodeScreen) {
+                    securityCodeScreen.style.display = 'none';
+                }
+                
+                // Show success message
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                } else {
+                    alert('Transaction completed successfully!');
+                }
+                
+                // Clear stored data
+                localStorage.removeItem('selectedRecipientId');
+                localStorage.removeItem('selectedPaymentId');
+                localStorage.removeItem('selectedRecipient');
+                localStorage.removeItem('selectedPayment');
+            } else {
+                throw new Error(result.message || 'Failed to complete transaction');
+            }
+        })
+        .catch(error => {
+            console.error('Error processing transaction:', error);
+            
+            // Reset button state
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Confirm payment';
+            }
+            
+            alert(`Error: ${error.message || 'Failed to process transaction'}`);
+        });
+    }
+
+    
+
+
     // Update number 
     function redirectToWhatsApp() {
         // Get the WhatsApp phone number from environment
@@ -1157,11 +1316,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to process the send money action for returning users
-    async function processSendMoney() {
+        // Function to process the send money action for returning users
+        function processSendMoney() {
         const sendButton = document.getElementById('continueSendButton');
-        sendButton.disabled = true;
-        sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
         
         try {
             // Get selected recipient and payment method
@@ -1172,50 +1329,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please select a recipient and payment method');
             }
             
-            // Create request data
-            const requestData = {
-                transaction_id: transactionId,
-                recipient_id: recipientId,
-                payment_method_id: paymentId
-            };
-            
-            // Send to API
-            const response = await fetch(`${API_BASE_URL}/api/complete-transaction`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                // Show success message
-                const returningView = document.getElementById('returningUserView');
-                if (returningView) {
-                    returningView.style.display = 'none';
-                }
-                
-                successMessage.style.display = 'block';
-                
-                // Clear stored data
-                localStorage.removeItem('selectedRecipientId');
-                localStorage.removeItem('selectedPaymentId');
-                localStorage.removeItem('selectedRecipient');
-                localStorage.removeItem('selectedPayment');
-            } else {
-                throw new Error(result.message || 'Failed to complete transaction');
+            // Show button loading state
+            if (sendButton) {
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             }
+            
+            // Show security code verification screen
+            showSecurityCodeScreen();
+            
         } catch (error) {
-            console.error('Error processing transaction:', error);
-            alert(`Error: ${error.message || 'Failed to process transaction'}`);
-        } finally {
-            sendButton.disabled = false;
-            sendButton.innerHTML = 'Send money';
+            console.error('Error preparing transaction:', error);
+            alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
+            
+            // Reset button state
+            if (sendButton) {
+                sendButton.disabled = false;
+                sendButton.innerHTML = 'Send money';
+            }
         }
     }
-
+    
     
     // Function to fill transaction details
     function fillTransactionDetails(transferData, details) {
