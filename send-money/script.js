@@ -67,6 +67,33 @@ document.addEventListener('DOMContentLoaded', function () {
             view.style.display = 'block';
         }
     }
+
+
+
+    function initViewEventListeners() {
+        // Initialize security code screen event listeners
+        initSecurityCodeScreen();
+        
+        // Initialize review details view event listeners
+        document.getElementById('sendMoneyButton').addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            
+            try {
+                // Show security code verification screen
+                showSecurityCodeScreen();
+            } catch (error) {
+                console.error('Error preparing transaction:', error);
+                alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
+                
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = 'Send money';
+            }
+        });
+    }
+
+
     
     // Function to set up and show the review details view (Image 1)
     function showReviewDetailsView(recipientData, paymentData, transferData) {
@@ -1728,29 +1755,41 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to process the send money action for returning users
     function processSendMoney() {
         const sendButton = document.getElementById('continueSendButton');
-
+        
         try {
             // Get selected recipient and payment method
             const recipientId = localStorage.getItem('selectedRecipientId');
             const paymentId = localStorage.getItem('selectedPaymentId');
-
+            
             if (!recipientId || !paymentId) {
                 throw new Error('Please select a recipient and payment method');
             }
-
+            
             // Show button loading state
             if (sendButton) {
                 sendButton.disabled = true;
                 sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             }
-
-            // Show security code verification screen
-            showSecurityCodeScreen();
-
+            
+            // Get selected recipient and payment data
+            const selectedRecipient = localStorage.getItem('selectedRecipient') ? 
+                JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+                
+            const selectedPayment = localStorage.getItem('selectedPayment') ? 
+                JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                
+            if (selectedRecipient && selectedPayment) {
+                // Show review details page first (Image 1)
+                showReviewDetailsView(selectedRecipient, selectedPayment, userData.transfer_data);
+            } else {
+                // Something is wrong, show error
+                throw new Error('Recipient or payment data is missing');
+            }
+            
         } catch (error) {
             console.error('Error preparing transaction:', error);
             alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
-
+            
             // Reset button state
             if (sendButton) {
                 sendButton.disabled = false;
@@ -1919,17 +1958,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Set up confirm button with API call
     const confirmButton = document.getElementById('confirmButton');
     if (confirmButton) {
-        confirmButton.addEventListener('click', async function () {
+        // Remove all existing event listeners
+        const newConfirmButton = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+        
+        // Add new event listener
+        newConfirmButton.addEventListener('click', function() {
             // Disable button and show loading
             this.disabled = true;
-            this.innerHTML = '<span class="loader"></span> Processing...';
-
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            
             try {
-                console.log("Preparing to send transaction data...");
-
                 // Get form data
                 const formData = JSON.parse(localStorage.getItem('formData'));
-
+                
                 // Create payload
                 const payload = {
                     transaction_id: transactionId,
@@ -1944,50 +1986,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     zip_code: formData.zipCode,
                     email: formData.email
                 };
-
-                console.log("Sending payload:", payload);
-
-                // Make API call
-                const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-
-                console.log("Response status:", response.status);
-
-                // Get response text for logging
-                const responseText = await response.text();
-                console.log("Response body:", responseText);
-
-                if (!response.ok) {
-                    throw new Error(`Failed to complete transaction: ${response.status} - ${responseText}`);
-                }
-
-                // Show success message
-                if (successMessage) {
-                    transferContent.style.display = 'none';
-                    successMessage.style.display = 'block';
-                } else {
-                    alert('Transaction completed successfully!');
-                }
-
-                const newTransferBtn = document.querySelector('.btn-new-transfer');
-                if (newTransferBtn) {
-                    newTransferBtn.addEventListener('click', redirectToWhatsApp);
-                }
-
-                // Clear form data
-                localStorage.removeItem('formData');
-
+                
+                // Store data for later use
+                localStorage.setItem('firstTimeTransaction', 'true');
+                localStorage.setItem('firstTimeFormData', JSON.stringify(payload));
+                
+                // Show security code screen
+                showSecurityCodeScreen();
+                
             } catch (error) {
-                console.error('Error completing transaction:', error);
+                console.error('Error preparing transaction:', error);
                 alert(`Error: ${error.message || 'There was an error processing your transaction. Please try again.'}`);
-            } finally {
+                
                 // Reset button state
                 this.disabled = false;
                 this.innerHTML = 'Confirm and send';
