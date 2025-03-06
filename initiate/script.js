@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // API endpoint - change this to your actual API endpoint
     // For local testing with ngrok:
-    const API_BASE_URL = 'https://0e595e084b34.ngrok.app'; 
+    const API_BASE_URL = 'https://5d0bbd45f59c.ngrok.app'; 
     
     // For production:
     // const API_BASE_URL = 'https://api.testmoneytransfers.xyz';
