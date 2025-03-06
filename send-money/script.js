@@ -37,6 +37,382 @@ document.addEventListener('DOMContentLoaded', function () {
     // Store user data
     let userData = null;
 
+
+    // View management functions
+    function showView(viewId) {
+        // Hide all views
+        const views = [
+            'firstTimeView',
+            'reviewView',
+            'returningUserView',
+            'reviewDetailsView',
+            'recipientSelectionView',
+            'paymentMethodView',
+            'securityCodeScreen',
+            'viewDetailsContainer',
+            'addRecipientForm',
+            'addPaymentForm'
+        ];
+        
+        views.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+        
+        // Show requested view
+        const view = document.getElementById(viewId);
+        if (view) {
+            view.style.display = 'block';
+        }
+    }
+    
+    // Function to set up and show the review details view (Image 1)
+    function showReviewDetailsView(recipientData, paymentData, transferData) {
+        // Fill recipient details
+        document.getElementById('reviewDetailsRecipientName').textContent = recipientData.name;
+        
+        // Set country with flag if available
+        let countryDisplay = recipientData.country || 'Unknown';
+        if (recipientData.country === 'IN' || recipientData.country === 'INDIA') {
+            countryDisplay = '🇮🇳 India';
+        } else if (recipientData.country === 'MX' || recipientData.country === 'MEXICO') {
+            countryDisplay = '🇲🇽 Mexico';
+        } else if (recipientData.country === 'GT' || recipientData.country === 'GUATEMALA') {
+            countryDisplay = '🇬🇹 Guatemala';
+        }
+        document.getElementById('reviewDetailsDestination').textContent = countryDisplay;
+        
+        // Set delivery method
+        document.getElementById('reviewDetailsDeliveryMethod').textContent = 
+            transferData.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup';
+        
+        // Set account number (masked)
+        const accountNumber = recipientData.bank_account_number || '';
+        const lastFour = accountNumber ? `**** ${accountNumber.slice(-4)}` : '';
+        document.getElementById('reviewDetailsAccountNumber').textContent = lastFour;
+        
+        // Fill transfer details
+        const details = transferData.details;
+        document.getElementById('reviewDetailsSendAmount').textContent = 
+            `${formatCurrency(details.amount_from)} ${details.currency_from}`;
+            
+        document.getElementById('reviewDetailsTransferFees').textContent = 
+            `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+            
+        document.getElementById('reviewDetailsTotal').textContent = 
+            `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+            
+        document.getElementById('reviewDetailsReceiveAmount').textContent = 
+            `${formatCurrency(details.amount_to)} ${details.currency_to}`;
+            
+        document.getElementById('reviewDetailsExchangeRate').textContent = 
+            `Exchange rate: 1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
+            
+        // Fill payment method details
+        const cardNumber = paymentData.card_number || '';
+        const lastFourCard = cardNumber ? `*${cardNumber.slice(-4)}` : '';
+        document.getElementById('reviewDetailsCardNumber').textContent = lastFourCard;
+        
+        // Set up event listeners for edit links
+        document.getElementById('editRecipientLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            showRecipientSelectionView(transferData);
+        });
+        
+        document.getElementById('editPaymentLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPaymentMethodView();
+        });
+        
+        // Set up send money button
+        document.getElementById('sendMoneyButton').addEventListener('click', function() {
+            // Show security code verification screen
+            showSecurityCodeScreen();
+        });
+        
+        // Show the view
+        showView('reviewDetailsView');
+    }
+    
+    // Function to set up and show recipient selection view (Image 2/3)
+    function showRecipientSelectionView(transferData) {
+        // Clear input fields
+        document.getElementById('recipientNameInput').value = '';
+        document.getElementById('recipientBankInput').value = '';
+        document.getElementById('recipientAccountInput').value = '';
+        
+        // Fill transfer details
+        const details = transferData.details;
+        document.getElementById('recipientViewSendAmount').textContent = 
+            `${formatCurrency(details.amount_from)} ${details.currency_from}`;
+            
+        document.getElementById('recipientViewTransferFees').textContent = 
+            `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+            
+        document.getElementById('recipientViewTotal').textContent = 
+            `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+            
+        document.getElementById('recipientViewReceiveAmount').textContent = 
+            `${formatCurrency(details.amount_to)} ${details.currency_to}`;
+            
+        document.getElementById('recipientViewExchangeRate').textContent = 
+            `Exchange rate: 1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
+        
+        // Add recent recipients if available
+        const recentRecipientsList = document.getElementById('recentRecipientsList');
+        recentRecipientsList.innerHTML = '';
+        
+        if (userData && userData.user_history && userData.user_history.recipients) {
+            userData.user_history.recipients.forEach(recipient => {
+                const lastFour = recipient.bank_account_number 
+                    ? `*${recipient.bank_account_number.slice(-4)}` 
+                    : '';
+                    
+                const recipientItem = document.createElement('div');
+                recipientItem.className = 'recent-recipient-item';
+                recipientItem.innerHTML = `
+                    <div class="avatar">${recipient.name.charAt(0)}</div>
+                    <div class="recent-recipient-info">
+                        <div class="recent-recipient-name">${recipient.name}</div>
+                        <div class="recent-recipient-account">${lastFour}</div>
+                    </div>
+                    <div class="view-option">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zm-8 3.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+                        </svg>
+                    </div>
+                `;
+                
+                // Add click event to select this recipient
+                recipientItem.addEventListener('click', function() {
+                    // Fill the form fields with recipient data
+                    document.getElementById('recipientNameInput').value = recipient.name;
+                    document.getElementById('recipientBankInput').value = recipient.bank_name || '';
+                    document.getElementById('recipientAccountInput').value = recipient.bank_account_number || '';
+                    
+                    // Store selected recipient
+                    localStorage.setItem('selectedRecipientId', recipient.id);
+                    localStorage.setItem('selectedRecipient', JSON.stringify(recipient));
+                });
+                
+                recentRecipientsList.appendChild(recipientItem);
+            });
+            
+            // Show recent recipients section
+            document.getElementById('recentRecipientsSection').style.display = 'block';
+        } else {
+            // Hide recent recipients section if no history
+            document.getElementById('recentRecipientsSection').style.display = 'none';
+        }
+        
+        // Set up payment method display
+        if (userData && userData.user_history && userData.user_history.payment_methods && userData.user_history.payment_methods.length > 0) {
+            const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || userData.user_history.payment_methods[0];
+            const lastFour = defaultPayment.card_number ? `*${defaultPayment.card_number.slice(-4)}` : '';
+            document.getElementById('recipientViewCardNumber').textContent = lastFour;
+            
+            // Store selected payment method
+            localStorage.setItem('selectedPaymentId', defaultPayment.id);
+            localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+        }
+        
+        // Add continue button event listener
+        document.getElementById('recipientContinueButton').addEventListener('click', function() {
+            // Get input values
+            const name = document.getElementById('recipientNameInput').value;
+            const bankName = document.getElementById('recipientBankInput').value;
+            const accountNumber = document.getElementById('recipientAccountInput').value;
+            
+            // Validate form
+            let isValid = true;
+            
+            if (!name) {
+                document.getElementById('recipientNameInput').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('recipientNameInput').classList.remove('is-invalid');
+            }
+            
+            if (!bankName) {
+                document.getElementById('recipientBankInput').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('recipientBankInput').classList.remove('is-invalid');
+            }
+            
+            if (!accountNumber) {
+                document.getElementById('recipientAccountInput').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('recipientAccountInput').classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                return;
+            }
+            
+            // If we're using an existing recipient, go back to review details
+            const selectedRecipientId = localStorage.getItem('selectedRecipientId');
+            const selectedRecipient = localStorage.getItem('selectedRecipient') ? JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+            const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+            const selectedPayment = localStorage.getItem('selectedPayment') ? JSON.parse(localStorage.getItem('selectedPayment')) : null;
+            
+            if (selectedRecipientId && selectedPaymentId) {
+                showReviewDetailsView(selectedRecipient, selectedPayment, transferData);
+            } else {
+                // TODO: If new recipient, save it first, then show review
+                // For now, just show the review with form data
+                const newRecipient = {
+                    name: name,
+                    bank_name: bankName,
+                    bank_account_number: accountNumber,
+                    country: transferData.country.toUpperCase()
+                };
+                
+                showReviewDetailsView(newRecipient, selectedPayment, transferData);
+            }
+        });
+        
+        // Set up edit payment method link
+        document.getElementById('editPaymentMethodLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPaymentMethodView();
+        });
+        
+        // Show view
+        showView('recipientSelectionView');
+    }
+    
+    // Function to set up and show payment method view (Image 4)
+    function showPaymentMethodView() {
+        // Clear input fields
+        document.getElementById('paymentCardNumber').value = '';
+        document.getElementById('paymentCardExpiry').value = '';
+        document.getElementById('paymentCardCvv').value = '';
+        document.getElementById('paymentCardName').value = '';
+        document.getElementById('paymentCardZip').value = '';
+        
+        // If we have saved payment methods, show them
+        if (userData && userData.user_history && userData.user_history.payment_methods && userData.user_history.payment_methods.length > 0) {
+            // Get default or first payment method
+            const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || userData.user_history.payment_methods[0];
+            const lastFour = defaultPayment.card_number ? `*${defaultPayment.card_number.slice(-4)}` : '';
+            document.getElementById('savedPaymentCardNumber').textContent = lastFour;
+            
+            // Store selected payment method
+            localStorage.setItem('selectedPaymentId', defaultPayment.id);
+            localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+            
+            // Show saved payment section
+            document.getElementById('savedPaymentSection').style.display = 'block';
+        } else {
+            // Hide saved payment section if no history
+            document.getElementById('savedPaymentSection').style.display = 'none';
+        }
+        
+        // Add save button event listener
+        document.getElementById('paymentSaveButton').addEventListener('click', function() {
+            // Get values from form
+            const cardNumber = document.getElementById('paymentCardNumber').value;
+            const cardExpiry = document.getElementById('paymentCardExpiry').value;
+            const cardCvv = document.getElementById('paymentCardCvv').value;
+            const cardName = document.getElementById('paymentCardName').value;
+            const cardCountry = document.getElementById('paymentCardCountry').value;
+            const cardZip = document.getElementById('paymentCardZip').value;
+            
+            // If we're using existing card, go back to previous view
+            const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+            
+            if (selectedPaymentId && !cardNumber) {
+                // Go back to previous view
+                const selectedRecipientId = localStorage.getItem('selectedRecipientId');
+                const selectedRecipient = localStorage.getItem('selectedRecipient') ? JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+                const selectedPayment = localStorage.getItem('selectedPayment') ? JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                
+                if (selectedRecipientId) {
+                    // Go back to review details
+                    showReviewDetailsView(selectedRecipient, selectedPayment, userData.transfer_data);
+                } else {
+                    // Go back to recipient selection
+                    showRecipientSelectionView(userData.transfer_data);
+                }
+            } else {
+                // Validate form if entering new card
+                let isValid = true;
+                
+                if (!cardNumber) {
+                    document.getElementById('paymentCardNumber').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('paymentCardNumber').classList.remove('is-invalid');
+                }
+                
+                if (!cardExpiry) {
+                    document.getElementById('paymentCardExpiry').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('paymentCardExpiry').classList.remove('is-invalid');
+                }
+                
+                if (!cardCvv) {
+                    document.getElementById('paymentCardCvv').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('paymentCardCvv').classList.remove('is-invalid');
+                }
+                
+                if (!cardName) {
+                    document.getElementById('paymentCardName').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('paymentCardName').classList.remove('is-invalid');
+                }
+                
+                if (!cardZip) {
+                    document.getElementById('paymentCardZip').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('paymentCardZip').classList.remove('is-invalid');
+                }
+                
+                if (!isValid) {
+                    return;
+                }
+                
+                // TODO: Save new payment method to backend, then show review
+                // For now, just use the new data
+                const newPayment = {
+                    card_number: cardNumber,
+                    card_type: 'Debit card',
+                    expiration_date: cardExpiry
+                };
+                
+                // Store new payment data
+                localStorage.setItem('newPayment', JSON.stringify(newPayment));
+                
+                // Go back to previous view
+                const selectedRecipientId = localStorage.getItem('selectedRecipientId');
+                const selectedRecipient = localStorage.getItem('selectedRecipient') ? JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+                
+                if (selectedRecipientId) {
+                    // Go back to review details
+                    showReviewDetailsView(selectedRecipient, newPayment, userData.transfer_data);
+                } else {
+                    // Go back to recipient selection
+                    showRecipientSelectionView(userData.transfer_data);
+                }
+            }
+        });
+        
+        // Show view
+        showView('paymentMethodView');
+    }
+
+
+    
+
     // Function to format currency
     function formatCurrency(amount, currency) {
         return new Intl.NumberFormat('en-US', {
@@ -125,67 +501,78 @@ document.addEventListener('DOMContentLoaded', function () {
     function displayAppropriateView(data) {
         const transferData = data.transfer_data;
         const details = transferData.details;
-
+        
         // Fill in transaction data (amounts, rates, etc.)
         fillTransactionDetails(transferData, details);
-
-        // Check if we have user history
-        const hasHistory = data.user_history &&
-            (data.user_history.recipients?.length > 0 ||
-                data.user_history.payment_methods?.length > 0);
-
-        // Show user interface based on history
-        if (hasHistory) {
-            setupReturningUserView(data.user_history, transferData);
-        } else {
-            setupFirstTimeUserView();
-        }
-
-        // Hide loading, show content
+        
+        // Hide loading
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
+        
+        // Check if we have user history
+        const hasHistory = data.user_history && 
+                          (data.user_history.recipients?.length > 0 || 
+                           data.user_history.payment_methods?.length > 0);
+                           
+        // Show user interface based on history
+        if (hasHistory) {
+            // Check if we have recipients and payment methods
+            const hasRecipients = data.user_history.recipients && data.user_history.recipients.length > 0;
+            const hasPaymentMethods = data.user_history.payment_methods && data.user_history.payment_methods.length > 0;
+            
+            if (hasRecipients && hasPaymentMethods) {
+                // Select the first recipient and payment method by default
+                const firstRecipient = data.user_history.recipients[0];
+                const defaultPayment = data.user_history.payment_methods.find(p => p.is_default) || data.user_history.payment_methods[0];
+                
+                localStorage.setItem('selectedRecipientId', firstRecipient.id);
+                localStorage.setItem('selectedRecipient', JSON.stringify(firstRecipient));
+                localStorage.setItem('selectedPaymentId', defaultPayment.id);
+                localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+                
+                // Show review details view for returning user (Image 1)
+                showReviewDetailsView(firstRecipient, defaultPayment, transferData);
+            } else if (hasRecipients) {
+                // Show recipient selection with prefilled recipient but need payment method
+                showRecipientSelectionView(transferData);
+            } else if (hasPaymentMethods) {
+                // Need recipient but have payment method
+                showRecipientSelectionView(transferData);
+            } else {
+                // Shouldn't get here with hasHistory true, but just in case
+                showRecipientSelectionView(transferData);
+            }
+        } else {
+            // First time user - start with recipient form (Image 3/5)
+            showRecipientSelectionView(transferData);
+        }
     }
 
 
 
     // Show security code screen
     function showSecurityCodeScreen() {
-        // Hide returning user view or review view
-        const returningView = document.getElementById('returningUserView');
-        if (returningView) {
-            returningView.style.display = 'none';
-        }
-
-        const reviewView = document.getElementById('reviewView');
-        if (reviewView) {
-            reviewView.style.display = 'none';
-        }
-
         // Reset security code input and error
         const securityCodeInput = document.getElementById('securityCode');
         if (securityCodeInput) {
             securityCodeInput.value = '';
             securityCodeInput.classList.remove('is-invalid');
         }
-
+        
         const securityCodeError = document.getElementById('securityCodeError');
         if (securityCodeError) {
             securityCodeError.style.display = 'none';
         }
-
+        
         // Disable confirm button initially
         const confirmBtn = document.getElementById('confirmPaymentBtn');
         if (confirmBtn) {
             confirmBtn.disabled = true;
         }
-
-        // Show security code screen
-        const securityCodeScreen = document.getElementById('securityCodeScreen');
-        if (securityCodeScreen) {
-            securityCodeScreen.style.display = 'block';
-        }
+        
+        // Show the view
+        showView('securityCodeScreen');
     }
-
 
 
 
