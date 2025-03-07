@@ -255,8 +255,10 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
         } else {
             // If no payment methods, show default text
-            document.getElementById('recipientViewPaymentMethod').innerHTML = 
-                'Add a payment method <span id="recipientViewCardNumber"></span>';
+                showPaymentMethodView();
+                return;
+            // document.getElementById('recipientViewPaymentMethod').innerHTML = 
+                // 'Add a payment method <span id="recipientViewCardNumber"></span>';
         }
         
         // Set up event listeners for buttons (continue, edit payment)
