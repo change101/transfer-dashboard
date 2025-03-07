@@ -332,7 +332,7 @@
                             </div>
                         </div>
 
-                        <!-- Recipient Selection View -->                        
+                        <!-- Recipient Selection View -->
                         <div id="recipientSelectionView" style="display: none;">
                             <div class="section-header text-center mb-4">
                                 <h2>Send money</h2>
@@ -365,7 +365,31 @@
                             </div>
                             
                             <div class="transfer-info-section">
-                                <!-- Transfer info content -->
+                                <h4>Transfer</h4>
+                                
+                                <div class="amount-display-row">
+                                    <div class="amount-label">Sending amount</div>
+                                    <div class="amount-value" id="recipientViewSendAmount"></div>
+                                </div>
+                                
+                                <div class="amount-display-row">
+                                    <div class="amount-label">Transfer fees</div>
+                                    <div class="amount-value" id="recipientViewTransferFees"></div>
+                                </div>
+                                
+                                <div class="amount-display-row total-row">
+                                    <div class="amount-label">Total</div>
+                                    <div class="amount-value" id="recipientViewTotal"></div>
+                                </div>
+                                
+                                <div class="amount-display-row">
+                                    <div class="amount-label">Recipient receives*</div>
+                                    <div class="amount-value" id="recipientViewReceiveAmount"></div>
+                                </div>
+                                
+                                <div class="exchange-rate-display">
+                                    <div id="recipientViewExchangeRate"></div>
+                                </div>
                             </div>
                             
                             <div class="payment-method-section">
@@ -379,37 +403,6 @@
                                 </div>
                                 <div class="payment-display" id="recipientViewPaymentMethod">
                                     Debit card <span id="recipientViewCardNumber">*4325</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Add the payment method form directly here -->
-                            <div id="paymentMethodFormInline" style="display: none;">
-                                <h4>Card information</h4>
-                                <div class="mb-3">
-                                    <input type="text" class="form-control" id="inlineCardNumber" placeholder="1234 1234 1234 1234" required>
-                                </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <input type="text" class="form-control" id="inlineCardExpiry" placeholder="MM/YY" required>
-                                    </div>
-                                    <div class="col">
-                                        <input type="text" class="form-control" id="inlineCardCvv" placeholder="CVV" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Your full name (as appears on government ID)</label>
-                                    <input type="text" class="form-control" id="inlineCardName" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Country or region</label>
-                                    <input type="text" class="form-control" id="inlineCardCountry" value="United States" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <input type="text" class="form-control" id="inlineCardZip" placeholder="ZIP" required>
                                 </div>
                             </div>
                             
