@@ -191,7 +191,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const recentRecipientsList = document.getElementById('recentRecipientsList');
         recentRecipientsList.innerHTML = '';
         
-        if (userData && userData.user_history && userData.user_history.recipients) {
+        if (userData && userData.user_history && userData.user_history.recipients && 
+            userData.user_history.recipients.length > 0) {
+            
             userData.user_history.recipients.forEach(recipient => {
                 const lastFour = recipient.bank_account_number 
                     ? `*${recipient.bank_account_number.slice(-4)}` 
@@ -235,82 +237,219 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // Set up payment method display
-        if (userData && userData.user_history && userData.user_history.payment_methods && userData.user_history.payment_methods.length > 0) {
-            const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || userData.user_history.payment_methods[0];
-            const lastFour = defaultPayment.card_number ? `*${defaultPayment.card_number.slice(-4)}` : '';
-            document.getElementById('recipientViewCardNumber').textContent = lastFour;
+        const paymentDisplay = document.getElementById('recipientViewPaymentMethod');
+        const paymentForm = document.getElementById('paymentMethodFormInline');
+        
+        if (userData && userData.user_history && userData.user_history.payment_methods && 
+            userData.user_history.payment_methods.length > 0) {
+            
+            const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || 
+                                  userData.user_history.payment_methods[0];
+            const lastFour = defaultPayment.card_number ? 
+                            `*${defaultPayment.card_number.slice(-4)}` : '';
+            
+            // Show saved payment method display
+            paymentDisplay.innerHTML = `Debit card <span id="recipientViewCardNumber">${lastFour}</span>`;
+            paymentDisplay.style.display = 'block';
+            
+            // Hide inline payment form if it exists
+            if (paymentForm) {
+                paymentForm.style.display = 'none';
+            }
             
             // Store selected payment method
             localStorage.setItem('selectedPaymentId', defaultPayment.id);
             localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
         } else {
-            // If no payment methods, show default text
-            document.getElementById('recipientViewPaymentMethod').innerHTML = 
-                'Add a payment method <span id="recipientViewCardNumber"></span>';
+            // No payment methods, hide the payment display and show the inline form
+            if (paymentDisplay) {
+                paymentDisplay.style.display = 'none';
+            }
+            
+            if (paymentForm) {
+                paymentForm.style.display = 'block';
+                
+                // Clear any existing payment form values
+                const formInputs = paymentForm.querySelectorAll('input');
+                formInputs.forEach(input => {
+                    if (input.id !== 'inlineCardCountry') { // Preserve default country
+                        input.value = '';
+                    }
+                });
+            }
+            
+            // Clear any stored payment methods
+            localStorage.removeItem('selectedPaymentId');
+            localStorage.removeItem('selectedPayment');
         }
         
         // Add continue button event listener
-        document.getElementById('recipientContinueButton').addEventListener('click', function() {
-            // Get input values
-            const name = document.getElementById('recipientNameInput').value;
-            const bankName = document.getElementById('recipientBankInput').value;
-            const accountNumber = document.getElementById('recipientAccountInput').value;
+        const continueButton = document.getElementById('recipientContinueButton');
+        if (continueButton) {
+            // Clone to remove any existing event listeners
+            const newContinueButton = continueButton.cloneNode(true);
+            continueButton.parentNode.replaceChild(newContinueButton, continueButton);
             
-            // Validate form
-            let isValid = true;
-            
-            if (!name) {
-                document.getElementById('recipientNameInput').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('recipientNameInput').classList.remove('is-invalid');
-            }
-            
-            if (!bankName) {
-                document.getElementById('recipientBankInput').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('recipientBankInput').classList.remove('is-invalid');
-            }
-            
-            if (!accountNumber) {
-                document.getElementById('recipientAccountInput').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('recipientAccountInput').classList.remove('is-invalid');
-            }
-            
-            if (!isValid) {
-                return;
-            }
-            
-            // If we're using an existing recipient, go back to review details
-            const selectedRecipientId = localStorage.getItem('selectedRecipientId');
-            const selectedRecipient = localStorage.getItem('selectedRecipient') ? JSON.parse(localStorage.getItem('selectedRecipient')) : null;
-            const selectedPaymentId = localStorage.getItem('selectedPaymentId');
-            const selectedPayment = localStorage.getItem('selectedPayment') ? JSON.parse(localStorage.getItem('selectedPayment')) : null;
-            
-            if (selectedRecipientId && selectedPaymentId) {
-                showReviewDetailsView(selectedRecipient, selectedPayment, transferData);
-            } else {
-                // TODO: If new recipient, save it first, then show review
-                // For now, just show the review with form data
-                const newRecipient = {
+            newContinueButton.addEventListener('click', function() {
+                // Get recipient input values
+                const name = document.getElementById('recipientNameInput').value;
+                const bankName = document.getElementById('recipientBankInput').value;
+                const accountNumber = document.getElementById('recipientAccountInput').value;
+                
+                // Validate recipient form
+                let isValid = true;
+                
+                if (!name) {
+                    document.getElementById('recipientNameInput').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('recipientNameInput').classList.remove('is-invalid');
+                }
+                
+                if (!bankName) {
+                    document.getElementById('recipientBankInput').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('recipientBankInput').classList.remove('is-invalid');
+                }
+                
+                if (!accountNumber) {
+                    document.getElementById('recipientAccountInput').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('recipientAccountInput').classList.remove('is-invalid');
+                }
+                
+                if (!isValid) {
+                    return;
+                }
+                
+                // Check if we need to collect payment info
+                const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+                const selectedPayment = localStorage.getItem('selectedPayment') ? 
+                                       JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                
+                let paymentData = selectedPayment;
+                
+                // If no existing payment and payment form is visible, validate and collect payment form data
+                if ((!selectedPaymentId || !selectedPayment) && paymentForm && paymentForm.style.display !== 'none') {
+                    // Get payment input values
+                    const cardNumber = document.getElementById('inlineCardNumber').value;
+                    const cardExpiry = document.getElementById('inlineCardExpiry').value;
+                    const cardCvv = document.getElementById('inlineCardCvv').value;
+                    const cardName = document.getElementById('inlineCardName').value;
+                    const cardCountry = document.getElementById('inlineCardCountry').value;
+                    const cardZip = document.getElementById('inlineCardZip').value;
+                    
+                    // Validate payment form
+                    if (!cardNumber) {
+                        document.getElementById('inlineCardNumber').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('inlineCardNumber').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardExpiry) {
+                        document.getElementById('inlineCardExpiry').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('inlineCardExpiry').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardCvv) {
+                        document.getElementById('inlineCardCvv').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('inlineCardCvv').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardName) {
+                        document.getElementById('inlineCardName').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('inlineCardName').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardZip) {
+                        document.getElementById('inlineCardZip').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('inlineCardZip').classList.remove('is-invalid');
+                    }
+                    
+                    if (!isValid) {
+                        return;
+                    }
+                    
+                    // Create payment data object
+                    paymentData = {
+                        card_number: cardNumber,
+                        expiration_date: cardExpiry,
+                        card_type: 'Debit card',
+                        billing_name: cardName,
+                        country: cardCountry,
+                        zip_code: cardZip
+                    };
+                    
+                    // Store new payment data
+                    localStorage.setItem('newPayment', JSON.stringify(paymentData));
+                }
+                
+                // If we still don't have payment data, show an error
+                if (!paymentData) {
+                    alert('Please add a payment method');
+                    return;
+                }
+                
+                // Create recipient data object
+                const recipientData = {
                     name: name,
                     bank_name: bankName,
                     bank_account_number: accountNumber,
-                    country: transferData.country.toUpperCase()
+                    country: transferData.country.toUpperCase(),
+                    id: localStorage.getItem('selectedRecipientId') || null
                 };
                 
-                showReviewDetailsView(newRecipient, selectedPayment, transferData);
-            }
-        });
+                // Continue to review screen with both recipient and payment data
+                showReviewDetailsView(recipientData, paymentData, transferData);
+            });
+        }
         
-        // Set up edit payment method link
-        document.getElementById('editPaymentMethodLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            showPaymentMethodView();
-        });
+        // Handle edit payment method click - toggle between display and form
+        const editPaymentLink = document.getElementById('editPaymentMethodLink');
+        if (editPaymentLink) {
+            // Clone to remove any existing event listeners
+            const newEditLink = editPaymentLink.cloneNode(true);
+            editPaymentLink.parentNode.replaceChild(newEditLink, editPaymentLink);
+            
+            newEditLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (paymentDisplay && paymentForm) {
+                    if (paymentDisplay.style.display !== 'none') {
+                        // Switch to form
+                        paymentDisplay.style.display = 'none';
+                        paymentForm.style.display = 'block';
+                        
+                        // Clear any existing selection
+                        localStorage.removeItem('selectedPaymentId');
+                        localStorage.removeItem('selectedPayment');
+                    } else {
+                        // Check if we have stored payment data to switch back to
+                        const storedPayment = localStorage.getItem('selectedPayment');
+                        if (storedPayment) {
+                            const paymentData = JSON.parse(storedPayment);
+                            const lastFour = paymentData.card_number ? 
+                                            `*${paymentData.card_number.slice(-4)}` : '';
+                                            
+                            paymentDisplay.innerHTML = `Debit card <span id="recipientViewCardNumber">${lastFour}</span>`;
+                            paymentDisplay.style.display = 'block';
+                            paymentForm.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        }
         
         // Show view
         showView('recipientSelectionView');
