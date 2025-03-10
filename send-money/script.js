@@ -724,68 +724,94 @@ The key part that needs to be modified is under "Set up payment method display" 
         firstTimeView.style.display = 'block';
     }
 
-    // Function to display either first-time or returning user view
-function displayAppropriateView(data) {
-    const transferData = data.transfer_data;
-    const details = transferData.details;
-    
-    // Fill in transaction data (amounts, rates, etc.)
-    fillTransactionDetails(transferData, details);
-    
-    // Hide loading
-    loadingContainer.style.display = 'none';
-    transferContent.style.display = 'block';
-    
-    // Check if a preferred recipient ID is specified in the transfer data
-    // This would be set by WhatsApp when a previous recipient was selected
-    const preferredRecipientId = transferData.preferred_recipient_id || null;
-    
-    // Check if we have user history
-    const hasHistory = data.user_history && 
-                      (data.user_history.recipients?.length > 0 || 
-                       data.user_history.payment_methods?.length > 0);
-    
-    // If we have a preferred recipient ID, use that recipient
-    if (preferredRecipientId && hasHistory && data.user_history.recipients) {
-        // Find the preferred recipient in the user's history
-        const preferredRecipient = data.user_history.recipients.find(r => r.id === preferredRecipientId);
+
+    // Enhanced function to handle the returning user scenario
+    function handleReturningUser(userData) {
+        const hasRecipients = userData.user_history && 
+                            userData.user_history.recipients && 
+                            userData.user_history.recipients.length > 0;
+                            
+        const hasPaymentMethods = userData.user_history && 
+                                userData.user_history.payment_methods && 
+                                userData.user_history.payment_methods.length > 0;
         
-        if (preferredRecipient) {
-            // Select the preferred recipient and payment method
-            const defaultPayment = data.user_history.payment_methods && data.user_history.payment_methods.length > 0 ? 
-                (data.user_history.payment_methods.find(p => p.is_default) || data.user_history.payment_methods[0]) : null;
+        // Check if a recipient was pre-selected from WhatsApp
+        const preferredRecipientId = userData.transfer_data.preferred_recipient_id;
+        
+        if (preferredRecipientId && hasRecipients) {
+            // Find the preferred recipient
+            const selectedRecipient = userData.user_history.recipients.find(
+                r => r.id === preferredRecipientId
+            );
             
-            localStorage.setItem('selectedRecipientId', preferredRecipient.id);
-            localStorage.setItem('selectedRecipient', JSON.stringify(preferredRecipient));
-            
-            if (defaultPayment) {
-                localStorage.setItem('selectedPaymentId', defaultPayment.id);
-                localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
-                
-                // Show review details view for returning user with selected recipient
-                showReviewDetailsView(preferredRecipient, defaultPayment, transferData);
-            } else {
-                // Have preferred recipient but need payment method
-                showRecipientSelectionView(transferData);
+            if (selectedRecipient) {
+                if (hasPaymentMethods) {
+                    // If they have both recipient and payment method, show review
+                    const defaultPayment = userData.user_history.payment_methods.find(
+                        p => p.is_default
+                    ) || userData.user_history.payment_methods[0];
+                    
+                    showReviewDetailsView(selectedRecipient, defaultPayment, userData.transfer_data);
+                    return true;
+                } else {
+                    // Has recipient but needs payment method
+                    showPaymentMethodView();
+                    return true;
+                }
             }
-            return;
+        }
+        
+        // No preferred recipient or recipient not found
+        if (hasRecipients) {
+            // Show recipient selection with previous recipients
+            showRecipientSelectionView(userData.transfer_data);
+        } else {
+            // No previous recipients, show empty recipient form
+            showRecipientSelectionView(userData.transfer_data);
+        }
+        
+        return true;
+    }
+
+    // Function to display either first-time or returning user view
+    function displayAppropriateView(data) {
+        // Check if this is a new transfer (no recipient pre-selected in WhatsApp)
+        const isNewTransfer = !data.transfer_data.preferred_recipient_id;
+        const hasPaymentMethods = data.user_history && data.user_history.payment_methods && 
+                                  data.user_history.payment_methods.length > 0;
+        
+        // Clear loading state
+        loadingContainer.style.display = 'none';
+        transferContent.style.display = 'block';
+        
+        if (isNewTransfer) {
+            // Show recipient input view
+            showRecipientSelectionView(data.transfer_data);
+            
+            // If user has no payment methods, pre-select the payment method form view
+            if (!hasPaymentMethods) {
+                // You could either show both forms sequentially or show a notice
+                // that they'll need to add payment details next
+                document.getElementById('editPaymentMethodLink').click();
+            }
+        } else {
+            // Previous recipient was selected, show the review screen
+            const selectedRecipient = data.user_history.recipients.find(
+                r => r.id === data.transfer_data.preferred_recipient_id
+            );
+            
+            if (selectedRecipient && hasPaymentMethods) {
+                const defaultPayment = data.user_history.payment_methods.find(
+                    p => p.is_default
+                ) || data.user_history.payment_methods[0];
+                
+                showReviewDetailsView(selectedRecipient, defaultPayment, data.transfer_data);
+            } else {
+                // Handle edge case where recipient ID was provided but not found
+                showRecipientSelectionView(data.transfer_data);
+            }
         }
     }
-    
-    // If we reach here, either:
-    // 1. No preferred recipient was specified (new transfer)
-    // 2. The preferred recipient wasn't found in user history
-    // 3. User has no history at all
-    
-    // Show user interface based on history
-    if (hasHistory) {
-        // We have history but no preferred recipient, show recipient selection
-        showRecipientSelectionView(transferData);
-    } else {
-        // First time user - start with recipient form
-        showRecipientSelectionView(transferData);
-    }
-}
 
 
 
@@ -871,11 +897,13 @@ function displayAppropriateView(data) {
 
     // Function to complete the transaction after security code verification
     function completeTransaction() {
-        const isFirstTime = localStorage.getItem('firstTimeTransaction') === 'true';
-
+        const selectedRecipientId = localStorage.getItem('selectedRecipientId');
+        const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+        const securityCode = document.getElementById('securityCode').value.trim();
+        
         let apiUrl, requestData;
-
-        if (isFirstTime) {
+        
+        if (localStorage.getItem('firstTimeTransaction') === 'true') {
             // First-time transaction
             apiUrl = `${API_BASE_URL}/api/first-time-transaction`;
             requestData = JSON.parse(localStorage.getItem('firstTimeFormData'));
@@ -884,12 +912,13 @@ function displayAppropriateView(data) {
             apiUrl = `${API_BASE_URL}/api/complete-transaction`;
             requestData = {
                 transaction_id: transactionId,
-                recipient_id: localStorage.getItem('selectedRecipientId'),
-                payment_method_id: localStorage.getItem('selectedPaymentId')
+                recipient_id: selectedRecipientId,
+                payment_method_id: selectedPaymentId,
+                security_code: securityCode
             };
         }
-
-        // Send to API
+        
+        // Send to API with security code
         fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -897,58 +926,38 @@ function displayAppropriateView(data) {
             },
             body: JSON.stringify(requestData)
         })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`Failed to complete transaction: ${response.status} - ${text}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(result => {
-                if (result.status === 'success') {
-                    // Hide all views
-                    const transferContent = document.getElementById('transferContent');
-                    if (transferContent) {
-                        transferContent.style.display = 'none';
-                    }
-
-                    const securityCodeScreen = document.getElementById('securityCodeScreen');
-                    if (securityCodeScreen) {
-                        securityCodeScreen.style.display = 'none';
-                    }
-
-                    // Show success message
-                    if (successMessage) {
-                        successMessage.style.display = 'block';
-                    } else {
-                        alert('Transaction completed successfully!');
-                    }
-
-                    // Clear stored data
-                    localStorage.removeItem('selectedRecipientId');
-                    localStorage.removeItem('selectedPaymentId');
-                    localStorage.removeItem('selectedRecipient');
-                    localStorage.removeItem('selectedPayment');
-                    localStorage.removeItem('formData');
-                    localStorage.removeItem('firstTimeTransaction');
-                    localStorage.removeItem('firstTimeFormData');
-                } else {
-                    throw new Error(result.message || 'Failed to complete transaction');
-                }
-            })
-            .catch(error => {
-                console.error('Error processing transaction:', error);
-
-                // Reset button state
-                const confirmBtn = document.getElementById('confirmPaymentBtn');
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = 'Confirm payment';
-                }
-
-                alert(`Error: ${error.message || 'Failed to process transaction'}`);
-            });
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`Failed to complete transaction: ${response.status} - ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.status === 'success') {
+                // Show success message
+                showSuccessMessage();
+            } else {
+                throw new Error(result.message || 'Failed to complete transaction');
+            }
+        })
+        .catch(error => {
+            console.error('Error processing transaction:', error);
+            
+            // Show error message
+            const securityCodeError = document.getElementById('securityCodeError');
+            if (securityCodeError) {
+                securityCodeError.style.display = 'block';
+            }
+            
+            // Reset button state
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Confirm payment';
+            }
+        });
     }
 
 
