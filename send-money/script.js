@@ -40,7 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // View management functions
     function showView(viewId) {
-        // Hide all views
+        console.log("Showing view:", viewId);
+        
+        // Get all view elements
         const views = [
             'firstTimeView',
             'reviewView',
@@ -54,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'addPaymentForm'
         ];
         
+        // Hide all views
         views.forEach(id => {
             const element = document.getElementById(id);
             if (element) {
@@ -65,6 +68,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const view = document.getElementById(viewId);
         if (view) {
             view.style.display = 'block';
+            console.log("View displayed:", viewId);
+        } else {
+            console.error("View not found:", viewId);
         }
     }
 
@@ -692,14 +698,12 @@ The key part that needs to be modified is under "Set up payment method display" 
             if (data.status === 'success' && data.transfer_data && data.transfer_data.details) {
                 // Set userData - store complete data object
                 userData = data;
-    
-                // Make sure all required DOM elements exist before continuing
-                if (document.getElementById('transferContent') === null) {
-                    throw new Error("Required DOM elements not found. Page may not be fully loaded.");
-                }
-    
-                // Display appropriate view based on user history
-                displayAppropriateView(data);
+                
+                // Wait a short time to ensure all DOM elements are loaded
+                setTimeout(() => {
+                    // Display appropriate view based on user history
+                    displayAppropriateView(data);
+                }, 100);
             } else {
                 console.error("Data format incorrect:", data);
                 showError("The transaction data format is invalid. Please try again.");
@@ -774,7 +778,6 @@ The key part that needs to be modified is under "Set up payment method display" 
     }
 
     // Function to display either first-time or returning user view
-// In the displayAppropriateView function, modify just this part:
     function displayAppropriateView(data) {
         const transferData = data.transfer_data;
         const details = transferData.details;
@@ -782,7 +785,7 @@ The key part that needs to be modified is under "Set up payment method display" 
         // Fill in transaction data (amounts, rates, etc.)
         fillTransactionDetails(transferData, details);
         
-        // Hide loading
+        // Hide loading, show content
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
         
@@ -791,9 +794,21 @@ The key part that needs to be modified is under "Set up payment method display" 
         
         // Condition for new transfer (no recipient selected in WhatsApp)
         if (!preferredRecipientId) {
-            // This is a new transfer without pre-selected recipient
-            showRecipientSelectionView(transferData);
-            return;
+            console.log("New transfer without preferred recipient - showing recipient selection view");
+            // Explicitly show the first-time view or recipient selection view
+            const recipientSelectionView = document.getElementById('recipientSelectionView');
+            if (recipientSelectionView) {
+                recipientSelectionView.style.display = 'block';
+                setupRecipientViewEventListeners(); // Make sure event listeners are set up
+                return;
+            } else {
+                // Fall back to first-time view if recipientSelectionView doesn't exist
+                const firstTimeView = document.getElementById('firstTimeView');
+                if (firstTimeView) {
+                    firstTimeView.style.display = 'block';
+                    return;
+                }
+            }
         }
         
         // Continue with existing logic for returning users
