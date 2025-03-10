@@ -343,7 +343,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Check if we need to verify CVV
                     const isNewCard = localStorage.getItem('isNewCard') === 'true';
-                    const isUsingSavedCard = localStorage.getItem('selectedPaymentId') && !isNewCard;
+                    const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+                    const isUsingSavedCard = selectedPaymentId && !isNewCard;
+                    
+                    console.log("Is new card:", isNewCard);
+                    console.log("Is using saved card:", isUsingSavedCard);
                     
                     if (isUsingSavedCard) {
                         // Show security code verification screen for saved cards
@@ -812,6 +816,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // For simplicity, don't validate against an actual CVV - just accept any valid format
+                // In a real app, you'd validate this server-side
+                
                 // Show loading state on button
                 this.disabled = true;
                 this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
@@ -888,6 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('firstTimeTransaction');
                 localStorage.removeItem('firstTimeFormData');
                 localStorage.removeItem('tempRecipientData');
+                localStorage.removeItem('isNewCard');
             } else {
                 throw new Error(result.message || 'Failed to complete transaction');
             }
