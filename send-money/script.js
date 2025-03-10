@@ -774,44 +774,59 @@ The key part that needs to be modified is under "Set up payment method display" 
     }
 
     // Function to display either first-time or returning user view
+// In the displayAppropriateView function, modify just this part:
     function displayAppropriateView(data) {
-        // Check if this is a new transfer (no recipient pre-selected in WhatsApp)
-        const isNewTransfer = !data.transfer_data.preferred_recipient_id;
-        const hasPaymentMethods = data.user_history && data.user_history.payment_methods && 
-                                  data.user_history.payment_methods.length > 0;
+        const transferData = data.transfer_data;
+        const details = transferData.details;
         
-        // Clear loading state
+        // Fill in transaction data (amounts, rates, etc.)
+        fillTransactionDetails(transferData, details);
+        
+        // Hide loading
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
         
-        if (isNewTransfer) {
-            // Show recipient input view
-            showRecipientSelectionView(data.transfer_data);
+        // Check if we have a preferred recipient from WhatsApp
+        const preferredRecipientId = transferData.preferred_recipient_id;
+        
+        // Condition for new transfer (no recipient selected in WhatsApp)
+        if (!preferredRecipientId) {
+            // This is a new transfer without pre-selected recipient
+            showRecipientSelectionView(transferData);
+            return;
+        }
+        
+        // Continue with existing logic for returning users
+        const hasHistory = data.user_history && 
+                        (data.user_history.recipients?.length > 0 || 
+                        data.user_history.payment_methods?.length > 0);
+                        
+        if (hasHistory) {
+            // Existing returning user logic
+            const hasRecipients = data.user_history.recipients && data.user_history.recipients.length > 0;
+            const hasPaymentMethods = data.user_history.payment_methods && data.user_history.payment_methods.length > 0;
             
-            // If user has no payment methods, pre-select the payment method form view
-            if (!hasPaymentMethods) {
-                // You could either show both forms sequentially or show a notice
-                // that they'll need to add payment details next
-                document.getElementById('editPaymentMethodLink').click();
+            if (hasRecipients && hasPaymentMethods) {
+                // Original logic for users with both recipient and payment history
+                const firstRecipient = data.user_history.recipients[0];
+                const defaultPayment = data.user_history.payment_methods.find(p => p.is_default) || 
+                                    data.user_history.payment_methods[0];
+                
+                localStorage.setItem('selectedRecipientId', firstRecipient.id);
+                localStorage.setItem('selectedRecipient', JSON.stringify(firstRecipient));
+                localStorage.setItem('selectedPaymentId', defaultPayment.id);
+                localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+                
+                showReviewDetailsView(firstRecipient, defaultPayment, transferData);
+            } else {
+                // Original logic for users with partial history
+                showRecipientSelectionView(transferData);
             }
         } else {
-            // Previous recipient was selected, show the review screen
-            const selectedRecipient = data.user_history.recipients.find(
-                r => r.id === data.transfer_data.preferred_recipient_id
-            );
-            
-            if (selectedRecipient && hasPaymentMethods) {
-                const defaultPayment = data.user_history.payment_methods.find(
-                    p => p.is_default
-                ) || data.user_history.payment_methods[0];
-                
-                showReviewDetailsView(selectedRecipient, defaultPayment, data.transfer_data);
-            } else {
-                // Handle edge case where recipient ID was provided but not found
-                showRecipientSelectionView(data.transfer_data);
-            }
+            // Original logic for first-time users
+            showRecipientSelectionView(transferData);
         }
-    }
+    }   
 
 
 
