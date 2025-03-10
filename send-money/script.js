@@ -1,6 +1,5 @@
+// transfer-dashboard/send-money/script.js
 
-// transfer-dashboard/send-money/script.js
-// transfer-dashboard/send-money/script.js
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM content loaded, script running!");
     
@@ -193,18 +192,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check if we have a preferred recipient from WhatsApp
         const preferredRecipientId = transferData.preferred_recipient_id;
         
-        // Condition for new transfer (no recipient selected in WhatsApp)
+        // Check if user is new or starting a new transfer without selecting previous recipient
         if (!preferredRecipientId) {
             console.log("New transfer - showing recipient selection");
             
-            // This is a new transfer without pre-selected recipient
-            if (document.getElementById('recipientSelectionView')) {
-                showRecipientSelectionView(transferData);
-            } else {
-                // Fall back to first time view if recipient selection view doesn't exist
-                firstTimeView.style.display = 'block';
+            // Show recipient input fields
+            showRecipientSelectionView(transferData);
+            
+            // Check if we have any saved payment methods
+            const hasPaymentMethods = data.user_history && 
+                                    data.user_history.payment_methods && 
+                                    data.user_history.payment_methods.length > 0;
+            
+            // If no payment methods, automatically show payment method input fields
+            if (!hasPaymentMethods) {
+                // Show payment method input fields right away
+                // Either directly or set a flag to show them after recipient details are entered
+                document.getElementById('recipientViewPaymentMethod').style.display = 'none';
+                document.getElementById('editPaymentMethodLink').click(); // Simulate clicking edit
             }
-            return;
         }
         
         // Continue with existing logic for returning users
@@ -329,13 +335,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const newSendMoneyButton = sendMoneyButton.cloneNode(true); // Clone to remove existing listeners
             sendMoneyButton.parentNode.replaceChild(newSendMoneyButton, sendMoneyButton);
             
+            // Add this to the setup of the send money button in showReviewDetailsView
             newSendMoneyButton.addEventListener('click', function() {
                 this.disabled = true;
                 this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                 
                 try {
-                    // Show security code verification screen
-                    showSecurityCodeScreen();
+                    // Check if we need to verify CVV
+                    const isNewCard = localStorage.getItem('isNewCard') === 'true';
+                    const isUsingSavedCard = localStorage.getItem('selectedPaymentId') && !isNewCard;
+                    
+                    if (isUsingSavedCard) {
+                        // Show security code verification screen for saved cards
+                        showSecurityCodeScreen();
+                    } else {
+                        // Skip CVV verification for new cards since user just entered it
+                        completeTransaction();
+                        // Clean up flag
+                        localStorage.removeItem('isNewCard');
+                    }
                 } catch (error) {
                     console.error('Error preparing transaction:', error);
                     alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
@@ -1757,11 +1775,14 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please fill in all required fields');
             return;
         }
-        
+
         const saveButton = document.getElementById('saveNewPayment');
         saveButton.disabled = true;
         saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
         
+        // Set flag for new card - this is correctly placed!
+        localStorage.setItem('isNewCard', 'true');
+
         try {
             // Ensure we have a user_id - CRITICAL FIX
             if (!userData.user_id) {
@@ -1825,7 +1846,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveButton.innerHTML = 'Save';
         }
     }
-    
+
     // Function to process the send money action for returning users
     function processSendMoney() {
         const sendButton = document.getElementById('continueSendButton');
@@ -1853,8 +1874,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 JSON.parse(localStorage.getItem('selectedPayment')) : null;
                 
             if (selectedRecipient && selectedPayment) {
-                // Show review details page first (Image 1)
+                // Check if this is a new card or a saved card
+                const isNewCard = localStorage.getItem('isNewCard') === 'true';
+                const isUsingSavedCard = paymentId && !isNewCard;
+                
+                // First show review details regardless of card type
                 showReviewDetailsView(selectedRecipient, selectedPayment, userData.transfer_data);
+                
+                // Note: The actual CVV verification should happen when the "Send Money" button is clicked
+                // on the review details page, not immediately here.
             } else {
                 // Something is wrong, show error
                 throw new Error('Recipient or payment data is missing');
