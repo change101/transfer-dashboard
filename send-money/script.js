@@ -656,11 +656,15 @@ The key part that needs to be modified is under "Set up payment method display" 
             showError("Missing transaction ID. Please go back to WhatsApp and try again.");
             return;
         }
-
+    
         try {
             const requestUrl = `${API_BASE_URL}/api/transaction/${transactionId}`;
             console.log("Fetching data from:", requestUrl);
-
+    
+            // Add timeout to prevent indefinite loading
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+    
             const response = await fetch(requestUrl, {
                 method: 'GET',
                 headers: {
@@ -668,36 +672,32 @@ The key part that needs to be modified is under "Set up payment method display" 
                     'Content-Type': 'application/json'
                 },
                 mode: 'cors',
-                credentials: 'omit'
+                credentials: 'omit',
+                signal: controller.signal
             });
-
+    
+            clearTimeout(timeoutId); // Clear timeout if response received
+    
             console.log("Response status:", response.status);
-
+    
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error("API returned error status:", response.status, errorText);
                 throw new Error(`Failed to fetch transaction data: ${response.status} - ${errorText}`);
             }
-
+    
             const data = await response.json();
             console.log("API response data:", data);
-
+    
             if (data.status === 'success' && data.transfer_data && data.transfer_data.details) {
                 // Set userData - store complete data object
                 userData = data;
-
-                // Make sure user_id is set if present in user_history
-                if (data.user_history && data.user_history.user_id) {
-                    userData.user_id = data.user_history.user_id;
+    
+                // Make sure all required DOM elements exist before continuing
+                if (document.getElementById('transferContent') === null) {
+                    throw new Error("Required DOM elements not found. Page may not be fully loaded.");
                 }
-
-                // Check for user_id directly in data
-                if (data.user_id) {
-                    userData.user_id = data.user_id;
-                }
-
-                console.log("User data set:", userData);
-
+    
                 // Display appropriate view based on user history
                 displayAppropriateView(data);
             } else {
