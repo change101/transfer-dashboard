@@ -1,7 +1,8 @@
 
 // transfer-dashboard/send-money/script.js
+// transfer-dashboard/send-money/script.js
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Script is running!");
+    console.log("DOM content loaded, script running!");
     
     // Get transaction ID from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +38,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Store user data
     let userData = null;
+
+    // View management function
+    function showView(viewId) {
+        console.log("Showing view:", viewId);
+        
+        // Get all view elements
+        const views = [
+            'firstTimeView',
+            'reviewView',
+            'returningUserView',
+            'reviewDetailsView',
+            'recipientSelectionView',
+            'paymentMethodView',
+            'securityCodeScreen',
+            'viewDetailsContainer',
+            'addRecipientForm',
+            'addPaymentForm'
+        ];
+        
+        // Hide all views
+        views.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+        
+        // Show requested view
+        const view = document.getElementById(viewId);
+        if (view) {
+            view.style.display = 'block';
+            console.log("View displayed:", viewId);
+        } else {
+            console.error("View not found:", viewId);
+        }
+    }
     
     // Function to format currency
     function formatCurrency(amount, currency) {
@@ -59,6 +96,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const requestUrl = `${API_BASE_URL}/api/transaction/${transactionId}`;
             console.log("Fetching data from:", requestUrl);
             
+            // Add timeout to prevent indefinite loading
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
             const response = await fetch(requestUrl, {
                 method: 'GET',
                 headers: {
@@ -66,8 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 },
                 mode: 'cors',
-                credentials: 'omit'
+                credentials: 'omit',
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId); // Clear timeout if response received
             
             console.log("Response status:", response.status);
             
@@ -96,8 +140,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 console.log("User data set:", userData);
                 
-                // Display appropriate view based on user history
-                displayAppropriateView(data);
+                // Add a short timeout to ensure DOM is ready
+                setTimeout(() => {
+                    // Make sure critical elements exist
+                    if (!document.getElementById('transferContent')) {
+                        console.error("Transfer content element not found in DOM");
+                        showError("The page is not fully loaded. Please refresh and try again.");
+                        return;
+                    }
+                    
+                    // Display appropriate view based on user history
+                    displayAppropriateView(data);
+                }, 100);
             } else {
                 console.error("Data format incorrect:", data);
                 showError("The transaction data format is invalid. Please try again.");
@@ -130,23 +184,715 @@ document.addEventListener('DOMContentLoaded', function() {
         // Fill in transaction data (amounts, rates, etc.)
         fillTransactionDetails(transferData, details);
         
-        // Check if we have user history
+        // Hide loading screen
+        loadingContainer.style.display = 'none';
+        transferContent.style.display = 'block';
+        
+        console.log("Checking for preferred recipient:", transferData.preferred_recipient_id);
+        
+        // Check if we have a preferred recipient from WhatsApp
+        const preferredRecipientId = transferData.preferred_recipient_id;
+        
+        // Condition for new transfer (no recipient selected in WhatsApp)
+        if (!preferredRecipientId) {
+            console.log("New transfer - showing recipient selection");
+            
+            // This is a new transfer without pre-selected recipient
+            if (document.getElementById('recipientSelectionView')) {
+                showRecipientSelectionView(transferData);
+            } else {
+                // Fall back to first time view if recipient selection view doesn't exist
+                firstTimeView.style.display = 'block';
+            }
+            return;
+        }
+        
+        // Continue with existing logic for returning users
         const hasHistory = data.user_history && 
                           (data.user_history.recipients?.length > 0 || 
                            data.user_history.payment_methods?.length > 0);
                            
-        // Show user interface based on history
         if (hasHistory) {
-            setupReturningUserView(data.user_history, transferData);
+            // Existing returning user logic
+            const hasRecipients = data.user_history.recipients && data.user_history.recipients.length > 0;
+            const hasPaymentMethods = data.user_history.payment_methods && data.user_history.payment_methods.length > 0;
+            
+            if (hasRecipients && hasPaymentMethods) {
+                // Find the preferred recipient if it exists
+                const selectedRecipient = data.user_history.recipients.find(r => r.id === preferredRecipientId);
+                
+                if (selectedRecipient) {
+                    // Get default payment method
+                    const defaultPayment = data.user_history.payment_methods.find(p => p.is_default) || 
+                                        data.user_history.payment_methods[0];
+                
+                    // Store selected data for later
+                    localStorage.setItem('selectedRecipientId', selectedRecipient.id);
+                    localStorage.setItem('selectedRecipient', JSON.stringify(selectedRecipient));
+                    localStorage.setItem('selectedPaymentId', defaultPayment.id);
+                    localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+                
+                    // Show review details view
+                    showReviewDetailsView(selectedRecipient, defaultPayment, transferData);
+                } else {
+                    // Preferred recipient not found in history, show selection
+                    setupReturningUserView(data.user_history, transferData);
+                }
+            } else {
+                // User has partial history, show returning user view
+                setupReturningUserView(data.user_history, transferData);
+            }
         } else {
+            // First time user with preferred recipient from WhatsApp
             setupFirstTimeUserView();
         }
+    }
+    
+    // Function to set up and show the review details view
+    function showReviewDetailsView(recipientData, paymentData, transferData) {
+        console.log("Setting up review details view");
         
-        // Hide loading, show content
-        loadingContainer.style.display = 'none';
-        transferContent.style.display = 'block';
+        // Make sure the view exists
+        const reviewDetailsView = document.getElementById('reviewDetailsView');
+        if (!reviewDetailsView) {
+            console.error("Review details view not found in the DOM");
+            return;
+        }
+        
+        try {
+            // Fill recipient details
+            document.getElementById('reviewDetailsRecipientName').textContent = recipientData.name;
+            
+            // Set country with flag if available
+            let countryDisplay = recipientData.country || 'Unknown';
+            if (recipientData.country === 'IN' || recipientData.country === 'INDIA') {
+                countryDisplay = '🇮🇳 India';
+            } else if (recipientData.country === 'MX' || recipientData.country === 'MEXICO') {
+                countryDisplay = '🇲🇽 Mexico';
+            } else if (recipientData.country === 'GT' || recipientData.country === 'GUATEMALA') {
+                countryDisplay = '🇬🇹 Guatemala';
+            }
+            document.getElementById('reviewDetailsDestination').textContent = countryDisplay;
+            
+            // Set delivery method
+            document.getElementById('reviewDetailsDeliveryMethod').textContent = 
+                transferData.delivery_method === 'bank_deposit' ? 'Bank deposit' : 'Cash pickup';
+            
+            // Set account number (masked)
+            const accountNumber = recipientData.bank_account_number || '';
+            const lastFour = accountNumber ? `**** ${accountNumber.slice(-4)}` : '';
+            document.getElementById('reviewDetailsAccountNumber').textContent = lastFour;
+            
+            // Fill transfer details
+            const details = transferData.details;
+            document.getElementById('reviewDetailsSendAmount').textContent = 
+                `${formatCurrency(details.amount_from)} ${details.currency_from}`;
+                
+            document.getElementById('reviewDetailsTransferFees').textContent = 
+                `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+                
+            document.getElementById('reviewDetailsTotal').textContent = 
+                `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+                
+            document.getElementById('reviewDetailsReceiveAmount').textContent = 
+                `${formatCurrency(details.amount_to)} ${details.currency_to}`;
+                
+            document.getElementById('reviewDetailsExchangeRate').textContent = 
+                `Exchange rate: 1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
+                
+            // Fill payment method details
+            const cardNumber = paymentData.card_number || '';
+            const lastFourCard = cardNumber ? `*${cardNumber.slice(-4)}` : '';
+            document.getElementById('reviewDetailsCardNumber').textContent = lastFourCard;
+            
+            // Set up event listeners for edit links
+            const editRecipientLink = document.getElementById('editRecipientLink');
+            const newEditRecipientLink = editRecipientLink.cloneNode(true); // Clone to remove existing listeners
+            editRecipientLink.parentNode.replaceChild(newEditRecipientLink, editRecipientLink);
+            
+            newEditRecipientLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showRecipientSelectionView(transferData);
+            });
+            
+            const editPaymentLink = document.getElementById('editPaymentLink');
+            const newEditPaymentLink = editPaymentLink.cloneNode(true); // Clone to remove existing listeners
+            editPaymentLink.parentNode.replaceChild(newEditPaymentLink, editPaymentLink);
+            
+            newEditPaymentLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showPaymentMethodView();
+            });
+            
+            // Set up send money button
+            const sendMoneyButton = document.getElementById('sendMoneyButton');
+            const newSendMoneyButton = sendMoneyButton.cloneNode(true); // Clone to remove existing listeners
+            sendMoneyButton.parentNode.replaceChild(newSendMoneyButton, sendMoneyButton);
+            
+            newSendMoneyButton.addEventListener('click', function() {
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                try {
+                    // Show security code verification screen
+                    showSecurityCodeScreen();
+                } catch (error) {
+                    console.error('Error preparing transaction:', error);
+                    alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
+                    
+                    // Reset button state
+                    this.disabled = false;
+                    this.innerHTML = 'Send money';
+                }
+            });
+            
+            // Show the view
+            showView('reviewDetailsView');
+        } catch (error) {
+            console.error("Error setting up review details view:", error);
+            // Show a fallback view if there's an error
+            firstTimeView.style.display = 'block';
+        }
+    }
+    
+    // Function to set up and show recipient selection view
+    function showRecipientSelectionView(transferData) {
+        console.log("Setting up recipient selection view");
+        
+        const recipientSelectionView = document.getElementById('recipientSelectionView');
+        if (!recipientSelectionView) {
+            console.error("Recipient selection view not found in the DOM");
+            firstTimeView.style.display = 'block';
+            return;
+        }
+        
+        try {
+            // Clear input fields
+            document.getElementById('recipientNameInput').value = '';
+            document.getElementById('recipientBankInput').value = '';
+            document.getElementById('recipientAccountInput').value = '';
+            
+            // Fill transfer details
+            const details = transferData.details;
+            document.getElementById('recipientViewSendAmount').textContent = 
+                `${formatCurrency(details.amount_from)} ${details.currency_from}`;
+                
+            document.getElementById('recipientViewTransferFees').textContent = 
+                `${formatCurrency(details.transfer_fee)} ${details.currency_from}`;
+                
+            document.getElementById('recipientViewTotal').textContent = 
+                `${formatCurrency(details.total_amount)} ${details.currency_from}`;
+                
+            document.getElementById('recipientViewReceiveAmount').textContent = 
+                `${formatCurrency(details.amount_to)} ${details.currency_to}`;
+                
+            document.getElementById('recipientViewExchangeRate').textContent = 
+                `Exchange rate: 1 ${details.currency_from} = ${details.exchange_rate} ${details.currency_to}`;
+            
+            // Add recent recipients if available
+            const recentRecipientsList = document.getElementById('recentRecipientsList');
+            recentRecipientsList.innerHTML = '';
+            
+            if (userData && userData.user_history && userData.user_history.recipients && 
+                userData.user_history.recipients.length > 0) {
+                
+                userData.user_history.recipients.forEach(recipient => {
+                    const lastFour = recipient.bank_account_number 
+                        ? `*${recipient.bank_account_number.slice(-4)}` 
+                        : '';
+                        
+                    const recipientItem = document.createElement('div');
+                    recipientItem.className = 'recent-recipient-item';
+                    recipientItem.innerHTML = `
+                        <div class="avatar">${recipient.name.charAt(0)}</div>
+                        <div class="recent-recipient-info">
+                            <div class="recent-recipient-name">${recipient.name}</div>
+                            <div class="recent-recipient-account">${lastFour}</div>
+                        </div>
+                        <div class="view-option">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zm-8 3.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+                            </svg>
+                        </div>
+                    `;
+                    
+                    // Add click event to select this recipient
+                    recipientItem.addEventListener('click', function() {
+                        // Fill the form fields with recipient data
+                        document.getElementById('recipientNameInput').value = recipient.name;
+                        document.getElementById('recipientBankInput').value = recipient.bank_name || '';
+                        document.getElementById('recipientAccountInput').value = recipient.bank_account_number || '';
+                        
+                        // Store selected recipient
+                        localStorage.setItem('selectedRecipientId', recipient.id);
+                        localStorage.setItem('selectedRecipient', JSON.stringify(recipient));
+                    });
+                    
+                    recentRecipientsList.appendChild(recipientItem);
+                });
+                
+                // Show recent recipients section
+                document.getElementById('recentRecipientsSection').style.display = 'block';
+            } else {
+                // Hide recent recipients section if no history
+                document.getElementById('recentRecipientsSection').style.display = 'none';
+            }
+            
+            // Set up payment method display
+            if (userData && userData.user_history && userData.user_history.payment_methods && 
+                userData.user_history.payment_methods.length > 0) {
+                
+                const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || 
+                                    userData.user_history.payment_methods[0];
+                const lastFour = defaultPayment.card_number ? 
+                                `*${defaultPayment.card_number.slice(-4)}` : '';
+                
+                document.getElementById('recipientViewCardNumber').textContent = lastFour;
+                
+                // Store selected payment method
+                localStorage.setItem('selectedPaymentId', defaultPayment.id);
+                localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+            }
+            
+            // Add continue button event listener
+            const continueButton = document.getElementById('recipientContinueButton');
+            if (continueButton) {
+                // Remove any existing event listeners
+                const newContinueButton = continueButton.cloneNode(true);
+                continueButton.parentNode.replaceChild(newContinueButton, continueButton);
+                
+                newContinueButton.addEventListener('click', function() {
+                    // Get input values
+                    const name = document.getElementById('recipientNameInput').value;
+                    const bankName = document.getElementById('recipientBankInput').value;
+                    const accountNumber = document.getElementById('recipientAccountInput').value;
+                    
+                    // Validate form
+                    let isValid = true;
+                    
+                    if (!name) {
+                        document.getElementById('recipientNameInput').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('recipientNameInput').classList.remove('is-invalid');
+                    }
+                    
+                    if (!bankName) {
+                        document.getElementById('recipientBankInput').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('recipientBankInput').classList.remove('is-invalid');
+                    }
+                    
+                    if (!accountNumber) {
+                        document.getElementById('recipientAccountInput').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('recipientAccountInput').classList.remove('is-invalid');
+                    }
+                    
+                    if (!isValid) {
+                        return;
+                    }
+                    
+                    // Check if we're using existing recipient/payment or creating new
+                    const selectedRecipientId = localStorage.getItem('selectedRecipientId');
+                    const selectedRecipient = localStorage.getItem('selectedRecipient') ? 
+                                            JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+                    const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+                    const selectedPayment = localStorage.getItem('selectedPayment') ? 
+                                        JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                    
+                    if (selectedPaymentId) {
+                        // Either using existing recipient or creating new one
+                        let recipientData;
+                        
+                        if (selectedRecipientId) {
+                            // Using existing recipient
+                            recipientData = selectedRecipient;
+                        } else {
+                            // Creating new recipient with form data
+                            recipientData = {
+                                name: name,
+                                bank_name: bankName,
+                                bank_account_number: accountNumber,
+                                country: transferData.country.toUpperCase()
+                            };
+                        }
+                        
+                        // Show review screen with recipient and payment data
+                        showReviewDetailsView(recipientData, selectedPayment, transferData);
+                    } else {
+                        // No payment method selected, show payment method view
+                        // But first save the recipient data
+                        const recipientData = {
+                            name: name,
+                            bank_name: bankName,
+                            bank_account_number: accountNumber,
+                            country: transferData.country.toUpperCase(),
+                            id: selectedRecipientId || null
+                        };
+                        
+                        localStorage.setItem('tempRecipientData', JSON.stringify(recipientData));
+                        showPaymentMethodView();
+                    }
+                });
+            }
+            
+            // Set up edit payment method link
+            const editPaymentLink = document.getElementById('editPaymentMethodLink');
+            if (editPaymentLink) {
+                // Remove existing listeners
+                const newEditPaymentLink = editPaymentLink.cloneNode(true);
+                editPaymentLink.parentNode.replaceChild(newEditPaymentLink, editPaymentLink);
+                
+                newEditPaymentLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPaymentMethodView();
+                });
+            }
+            
+            // Show the view
+            showView('recipientSelectionView');
+        } catch (error) {
+            console.error("Error setting up recipient selection view:", error);
+            // Fall back to first time view
+            firstTimeView.style.display = 'block';
+        }
+    }
+    
+    // Show the payment method view
+    function showPaymentMethodView() {
+        console.log("Setting up payment method view");
+        
+        const paymentMethodView = document.getElementById('paymentMethodView');
+        if (!paymentMethodView) {
+            console.error("Payment method view not found in the DOM");
+            return;
+        }
+        
+        try {
+            // Clear input fields
+            document.getElementById('paymentCardNumber').value = '';
+            document.getElementById('paymentCardExpiry').value = '';
+            document.getElementById('paymentCardCvv').value = '';
+            document.getElementById('paymentCardName').value = '';
+            document.getElementById('paymentCardZip').value = '';
+            
+            // If we have saved payment methods, show them
+            const savedPaymentSection = document.getElementById('savedPaymentSection');
+            if (userData && userData.user_history && userData.user_history.payment_methods && 
+                userData.user_history.payment_methods.length > 0) {
+                
+                // Get default or first payment method
+                const defaultPayment = userData.user_history.payment_methods.find(p => p.is_default) || 
+                                    userData.user_history.payment_methods[0];
+                const lastFour = defaultPayment.card_number ? 
+                                `*${defaultPayment.card_number.slice(-4)}` : '';
+                
+                document.getElementById('savedPaymentCardNumber').textContent = lastFour;
+                
+                // Store selected payment method
+                localStorage.setItem('selectedPaymentId', defaultPayment.id);
+                localStorage.setItem('selectedPayment', JSON.stringify(defaultPayment));
+                
+                // Show saved payment section
+                savedPaymentSection.style.display = 'block';
+            } else {
+                // Hide saved payment section if no history
+                savedPaymentSection.style.display = 'none';
+            }
+            
+            // Add save button event listener
+            const saveButton = document.getElementById('paymentSaveButton');
+            // Clone button to remove any existing listeners
+            const newSaveButton = saveButton.cloneNode(true);
+            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+            
+            newSaveButton.addEventListener('click', function() {
+                // Get values from form
+                const cardNumber = document.getElementById('paymentCardNumber').value;
+                const cardExpiry = document.getElementById('paymentCardExpiry').value;
+                const cardCvv = document.getElementById('paymentCardCvv').value;
+                const cardName = document.getElementById('paymentCardName').value;
+                const cardCountry = document.getElementById('paymentCardCountry').value;
+                const cardZip = document.getElementById('paymentCardZip').value;
+                
+                // First, check if we have a saved payment selected and not trying to add a new one
+                const selectedPaymentId = localStorage.getItem('selectedPaymentId');
+                
+                if (selectedPaymentId && !cardNumber) {
+                    // Using existing payment method
+                    const selectedPayment = localStorage.getItem('selectedPayment') ? 
+                                        JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                    
+                    // Get recipient data (stored temporarily or selected)
+                    const recipientData = localStorage.getItem('tempRecipientData') ? 
+                                        JSON.parse(localStorage.getItem('tempRecipientData')) : 
+                                        JSON.parse(localStorage.getItem('selectedRecipient') || '{}');
+                    
+                    if (recipientData && Object.keys(recipientData).length > 0) {
+                        // Show review details with existing data
+                        showReviewDetailsView(recipientData, selectedPayment, userData.transfer_data);
+                    } else {
+                        // Go back to recipient selection
+                        showRecipientSelectionView(userData.transfer_data);
+                    }
+                } else {
+                    // User is trying to add a new payment method - validate form
+                    let isValid = true;
+                    
+                    if (!cardNumber) {
+                        document.getElementById('paymentCardNumber').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('paymentCardNumber').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardExpiry) {
+                        document.getElementById('paymentCardExpiry').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('paymentCardExpiry').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardCvv) {
+                        document.getElementById('paymentCardCvv').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('paymentCardCvv').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardName) {
+                        document.getElementById('paymentCardName').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('paymentCardName').classList.remove('is-invalid');
+                    }
+                    
+                    if (!cardZip) {
+                        document.getElementById('paymentCardZip').classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('paymentCardZip').classList.remove('is-invalid');
+                    }
+                    
+                    if (!isValid) {
+                        return;
+                    }
+                    
+                    // Create new payment object
+                    const newPayment = {
+                        card_number: cardNumber,
+                        card_type: 'Debit card',
+                        expiration_date: cardExpiry
+                    };
+                    
+                    // Get recipient data
+                    const recipientData = localStorage.getItem('tempRecipientData') ? 
+                                        JSON.parse(localStorage.getItem('tempRecipientData')) : 
+                                        JSON.parse(localStorage.getItem('selectedRecipient') || '{}');
+                    
+                    if (recipientData && Object.keys(recipientData).length > 0) {
+                        // Show review details with new payment data
+                        showReviewDetailsView(recipientData, newPayment, userData.transfer_data);
+                    } else {
+                        // Go back to recipient selection with new payment data
+                        localStorage.setItem('newPayment', JSON.stringify(newPayment));
+                        showRecipientSelectionView(userData.transfer_data);
+                    }
+                }
+            });
+            
+            // Add view saved payment button event listener
+            const viewSavedPaymentBtn = document.getElementById('viewSavedPaymentBtn');
+            if (viewSavedPaymentBtn) {
+                // Clone to remove existing listeners
+                const newViewBtn = viewSavedPaymentBtn.cloneNode(true);
+                viewSavedPaymentBtn.parentNode.replaceChild(newViewBtn, viewSavedPaymentBtn);
+                
+                newViewBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Select the saved payment by clicking on it (simplified implementation)
+                    localStorage.setItem('selectedPaymentId', 
+                                         userData.user_history.payment_methods[0].id);
+                    localStorage.setItem('selectedPayment', 
+                                         JSON.stringify(userData.user_history.payment_methods[0]));
+                    
+                    // Simulate clicking the save button to continue
+                    document.getElementById('paymentSaveButton').click();
+                });
+            }
+            
+            // Show view
+            showView('paymentMethodView');
+        } catch (error) {
+            console.error("Error setting up payment method view:", error);
+        }
+    }
+    
+    // Add the security code screen functionality
+    function showSecurityCodeScreen() {
+        console.log("Setting up security code screen");
+        
+        const securityCodeScreen = document.getElementById('securityCodeScreen');
+        if (!securityCodeScreen) {
+            console.error("Security code screen not found in the DOM");
+            return;
+        }
+        
+        try {
+            // Reset security code input and error
+            const securityCodeInput = document.getElementById('securityCode');
+            securityCodeInput.value = '';
+            securityCodeInput.classList.remove('is-invalid');
+            
+            const securityCodeError = document.getElementById('securityCodeError');
+            securityCodeError.style.display = 'none';
+            
+// Disable confirm button initially
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            confirmBtn.disabled = true;
+            
+            // Clone and replace to remove existing listeners
+            const newSecurityCodeInput = securityCodeInput.cloneNode(true);
+            securityCodeInput.parentNode.replaceChild(newSecurityCodeInput, securityCodeInput);
+            
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            // Add event listeners
+            newSecurityCodeInput.addEventListener('input', function() {
+                // Remove error styling if user types again
+                this.classList.remove('is-invalid');
+                securityCodeError.style.display = 'none';
+                
+                // Enable button if input has value
+                newConfirmBtn.disabled = (this.value.trim().length === 0);
+            });
+            
+            // Toggle password visibility
+            const eyeIcon = document.querySelector('#securityCodeScreen .input-group-text');
+            if (eyeIcon) {
+                eyeIcon.addEventListener('click', function() {
+                    const input = document.getElementById('securityCode');
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                });
+            }
+            
+            // Handle confirm button click
+            newConfirmBtn.addEventListener('click', function() {
+                const code = document.getElementById('securityCode').value.trim();
+                
+                // Simple validation (3-4 digits)
+                const isValid = /^\d{3,4}$/.test(code);
+                
+                if (!isValid) {
+                    // Show error styling
+                    document.getElementById('securityCode').classList.add('is-invalid');
+                    securityCodeError.style.display = 'block';
+                    return;
+                }
+                
+                // Show loading state on button
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                // Process transaction
+                completeTransaction();
+            });
+            
+            // Show the view
+            showView('securityCodeScreen');
+        } catch (error) {
+            console.error("Error setting up security code screen:", error);
+        }
     }
 
+    // Function to complete the transaction after security code verification
+    function completeTransaction() {
+        const isFirstTime = localStorage.getItem('firstTimeTransaction') === 'true';
+        let apiUrl, requestData;
+        
+        if (isFirstTime) {
+            // First-time transaction
+            apiUrl = `${API_BASE_URL}/api/first-time-transaction`;
+            requestData = JSON.parse(localStorage.getItem('firstTimeFormData'));
+        } else {
+            // Returning user transaction
+            apiUrl = `${API_BASE_URL}/api/complete-transaction`;
+            requestData = {
+                transaction_id: transactionId,
+                recipient_id: localStorage.getItem('selectedRecipientId'),
+                payment_method_id: localStorage.getItem('selectedPaymentId')
+            };
+        }
+        
+        console.log("Sending transaction data to API:", apiUrl, requestData);
+        
+        // Send to API
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`Failed to complete transaction: ${response.status} - ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.status === 'success') {
+                // Hide all views
+                const transferContent = document.getElementById('transferContent');
+                if (transferContent) {
+                    transferContent.style.display = 'none';
+                }
+                
+                // Show success message
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                } else {
+                    alert('Transaction completed successfully!');
+                }
+                
+                // Clear stored data
+                localStorage.removeItem('selectedRecipientId');
+                localStorage.removeItem('selectedPaymentId');
+                localStorage.removeItem('selectedRecipient');
+                localStorage.removeItem('selectedPayment');
+                localStorage.removeItem('formData');
+                localStorage.removeItem('firstTimeTransaction');
+                localStorage.removeItem('firstTimeFormData');
+                localStorage.removeItem('tempRecipientData');
+            } else {
+                throw new Error(result.message || 'Failed to complete transaction');
+            }
+        })
+        .catch(error => {
+            console.error('Error processing transaction:', error);
+            
+            // Reset button state
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Confirm payment';
+            }
+            
+            // Show error message
+            const securityCodeError = document.getElementById('securityCodeError');
+            if (securityCodeError) {
+                securityCodeError.style.display = 'block';
+            } else {
+                alert(`Error: ${error.message || 'Failed to process transaction'}`);
+            }
+        });
+    }
 
     // Update number 
     function redirectToWhatsApp() {
@@ -169,8 +915,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Redirect to WhatsApp
         window.location.href = whatsappLink;
-
-        
     }
 
 
@@ -187,9 +931,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 returningView.style.display = 'none';
             }
 
-            successMessage.style.display = 'block';
+            // Make sure success message is hidden
+            if (successMessage) {
+                successMessage.style.display = 'none';
+            }
 
-            // Add these lines right after it:
             // Set up WhatsApp redirect for "Send another transfer" button
             const newTransferBtn = document.querySelector('.btn-new-transfer');
             if (newTransferBtn) {
@@ -204,7 +950,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to set up the returning user view with history
-    // Updated recipient rendering with View/Delete option
     function setupReturningUserView(userHistory, transferData) {
         // Create/update the returning user container if it doesn't exist
         let returningView = document.getElementById('returningUserView');
@@ -360,57 +1105,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up event listeners
         setupReturningUserEventListeners(userHistory);
     }
-
-
-    // Add this function to manually add a new recipient to the UI
-    function addRecipientToUI(recipient) {
-        const recipientsContainer = document.querySelector('.section-header:contains("Recipient")').parentElement;
-        
-        // Get the add new button element (to insert before it)
-        const addNewBtn = document.getElementById('addRecipientBtn');
-        
-        // Create the new recipient element
-        const newRecipientElement = document.createElement('div');
-        newRecipientElement.className = 'recipient-option';
-        newRecipientElement.setAttribute('data-id', recipient.id);
-        
-        // Format account number for display
-        const lastFour = recipient.bank_account_number 
-            ? `*${recipient.bank_account_number.slice(-4)}` 
-            : '';
-        
-        // Set inner HTML
-        newRecipientElement.innerHTML = `
-            <div class="avatar">${recipient.name.charAt(0)}</div>
-            <div class="recipient-details">
-                <div class="recipient-name">${recipient.name}</div>
-                <div class="recipient-country">${lastFour}</div>
-            </div>
-        `;
-        
-        // Add click event listener
-        newRecipientElement.addEventListener('click', function() {
-            // Remove selected class from all options
-            document.querySelectorAll('.recipient-option').forEach(opt => 
-                opt.classList.remove('selected'));
-            
-            // Add selected class to this option
-            this.classList.add('selected');
-            
-            // Store selected recipient ID
-            localStorage.setItem('selectedRecipientId', recipient.id);
-            localStorage.setItem('selectedRecipient', JSON.stringify(recipient));
-        });
-        
-        // Insert the new recipient before the add new button
-        recipientsContainer.insertBefore(newRecipientElement, addNewBtn);
-        
-        // Select this new recipient
-        newRecipientElement.click();
-    }
-
-
-
 
     // Function to show recipient details with delete option
     function showRecipientDetails(recipientId, userHistory) {
@@ -685,22 +1379,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-
-
-
-    
-    
-   
-
-
-
-
-
-
-
-    
-    
-    
     // Function to set up event listeners for returning user view
     function setupReturningUserEventListeners(userHistory) {
         // Add event listeners for recipient selection
@@ -804,12 +1482,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-
-
-
-
-    
-    
     // Function to show the add recipient form
     function showAddRecipientForm() {
         // Hide returning user view
@@ -854,7 +1526,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="form-buttons">
                     <button type="button" id="cancelAddRecipient" class="btn btn-outline-secondary">Cancel</button>
-                    <button type="button" id="saveNewRecipient" class="btn btn-primary">Save</button>
+                   <button type="button" id="saveNewRecipient" class="btn btn-primary">Save</button>
                 </div>
             `;
             
@@ -1000,10 +1672,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-
-
-    
-    
     // Function to show the add payment method form
     function showAddPaymentForm() {
         // Hide returning user view
@@ -1159,10 +1827,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to process the send money action for returning users
-    async function processSendMoney() {
+    function processSendMoney() {
         const sendButton = document.getElementById('continueSendButton');
-        sendButton.disabled = true;
-        sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
         
         try {
             // Get selected recipient and payment method
@@ -1173,50 +1839,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please select a recipient and payment method');
             }
             
-            // Create request data
-            const requestData = {
-                transaction_id: transactionId,
-                recipient_id: recipientId,
-                payment_method_id: paymentId
-            };
-            
-            // Send to API
-            const response = await fetch(`${API_BASE_URL}/api/complete-transaction`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                // Show success message
-                const returningView = document.getElementById('returningUserView');
-                if (returningView) {
-                    returningView.style.display = 'none';
-                }
-                
-                successMessage.style.display = 'block';
-                
-                // Clear stored data
-                localStorage.removeItem('selectedRecipientId');
-                localStorage.removeItem('selectedPaymentId');
-                localStorage.removeItem('selectedRecipient');
-                localStorage.removeItem('selectedPayment');
-            } else {
-                throw new Error(result.message || 'Failed to complete transaction');
+            // Show button loading state
+            if (sendButton) {
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             }
+            
+            // Get selected recipient and payment data
+            const selectedRecipient = localStorage.getItem('selectedRecipient') ? 
+                JSON.parse(localStorage.getItem('selectedRecipient')) : null;
+                
+            const selectedPayment = localStorage.getItem('selectedPayment') ? 
+                JSON.parse(localStorage.getItem('selectedPayment')) : null;
+                
+            if (selectedRecipient && selectedPayment) {
+                // Show review details page first (Image 1)
+                showReviewDetailsView(selectedRecipient, selectedPayment, userData.transfer_data);
+            } else {
+                // Something is wrong, show error
+                throw new Error('Recipient or payment data is missing');
+            }
+            
         } catch (error) {
-            console.error('Error processing transaction:', error);
-            alert(`Error: ${error.message || 'Failed to process transaction'}`);
-        } finally {
-            sendButton.disabled = false;
-            sendButton.innerHTML = 'Send money';
+            console.error('Error preparing transaction:', error);
+            alert(`Error: ${error.message || 'Failed to prepare transaction'}`);
+            
+            // Reset button state
+            if (sendButton) {
+                sendButton.disabled = false;
+                sendButton.innerHTML = 'Send money';
+            }
         }
     }
-
     
     // Function to fill transaction details
     function fillTransactionDetails(transferData, details) {
@@ -1377,14 +2031,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up confirm button with API call
     const confirmButton = document.getElementById('confirmButton');
     if (confirmButton) {
-        confirmButton.addEventListener('click', async function() {
+        // Remove all existing event listeners
+        const newConfirmButton = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+        
+        // Add new event listener
+        newConfirmButton.addEventListener('click', function() {
             // Disable button and show loading
             this.disabled = true;
-            this.innerHTML = '<span class="loader"></span> Processing...';
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             
             try {
-                console.log("Preparing to send transaction data...");
-                
                 // Get form data
                 const formData = JSON.parse(localStorage.getItem('formData'));
                 
@@ -1403,49 +2060,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     email: formData.email
                 };
                 
-                console.log("Sending payload:", payload);
+                // Store data for later use
+                localStorage.setItem('firstTimeTransaction', 'true');
+                localStorage.setItem('firstTimeFormData', JSON.stringify(payload));
                 
-                // Make API call
-                const response = await fetch(`${API_BASE_URL}/api/first-time-transaction`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-                
-                console.log("Response status:", response.status);
-                
-                // Get response text for logging
-                const responseText = await response.text();
-                console.log("Response body:", responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to complete transaction: ${response.status} - ${responseText}`);
-                }
-                
-                // Show success message
-                if (successMessage) {
-                    transferContent.style.display = 'none';
-                    successMessage.style.display = 'block';
-                } else {
-                    alert('Transaction completed successfully!');
-                }
-
-                const newTransferBtn = document.querySelector('.btn-new-transfer');
-                if (newTransferBtn) {
-                    newTransferBtn.addEventListener('click', redirectToWhatsApp);
-                }
-                                
-                // Clear form data
-                localStorage.removeItem('formData');
+                // Show security code screen
+                showSecurityCodeScreen();
                 
             } catch (error) {
-                console.error('Error completing transaction:', error);
+                console.error('Error preparing transaction:', error);
                 alert(`Error: ${error.message || 'There was an error processing your transaction. Please try again.'}`);
-            } finally {
+                
                 // Reset button state
                 this.disabled = false;
                 this.innerHTML = 'Confirm and send';
@@ -1468,4 +2093,3 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize by fetching transaction data
     fetchTransactionData();
 });
-
