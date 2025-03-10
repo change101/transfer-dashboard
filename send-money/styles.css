@@ -319,13 +319,13 @@ body {
 
 /* Exchange rate */
 .exchange-rate {
-    background-color: #e8f5e9;
+    background-color: #ffd0b3;
     border-radius: 8px;
     padding: 0.75rem;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
-    color: #2e7d32;
+    color: #000000;
 }
 
 .rate-icon {
@@ -509,8 +509,8 @@ body {
 .exchange-rate {
     display: flex;
     align-items: center;
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: #ffd0b3;
+    color: #000000;
     padding: 0.75rem;
     border-radius: 8px;
     margin-bottom: 1rem;
@@ -888,12 +888,12 @@ body {
 }
 
 .exchange-rate-display {
-    background-color: #e8f5e9;
+    background-color: #ffd0b3;
     padding: 0.5rem;
     border-radius: 6px;
     margin-top: 1rem;
     text-align: center;
-    color: #2e7d32;
+    color: #000000;
     font-size: 0.9rem;
 }
 
@@ -1179,13 +1179,9 @@ body {
         padding: 0.75rem 1rem;
     }
     
-    .card-header h2,
-    .section-header h2 {
-        font-size: 1.25rem;
-    }
-    
+    .section-header h2,
     .section-header h3 {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
     
     .review-details-header h4,
