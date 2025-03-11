@@ -1,0 +1,606 @@
+
+/* Global styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.transfer-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.transfer-details {
+    padding: 1.5rem;
+}
+
+/* Loading and error states */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Form and input styles */
+.section-header {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header h3, .section-header h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.input-group-text {
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.input-group-text:hover {
+    background-color: #f8f9fa;
+}
+
+/* Amount section styles */
+.amount-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.amount-left {
+    padding: 0.75rem;
+    flex-grow: 1;
+}
+
+.amount-left label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.amount {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.amount-right {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-left: 1px solid #ddd;
+}
+
+/* Exchange rate styles */
+.exchange-rate {
+    background-color: #ffd0b3;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    color: #000000;
+}
+
+.rate-icon {
+    margin-right: 10px;
+}
+
+.exchange-rate-display {
+    background-color: #ffd0b3;
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    text-align: center;
+    color: #000000;
+    font-size: 0.9rem;
+}
+
+/* Delivery method style */
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.detail-section label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.select-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #fff;
+}
+
+.chevron-down {
+    color: #888;
+}
+
+/* Fee section styles */
+.fee-section {
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.fee-line, .total-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.total-line {
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Button styles */
+.action-section {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.continue-btn {
+    background-color: #ff5722;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.continue-btn:hover {
+    background-color: #e64a19;
+}
+
+.continue-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.edit-btn {
+    background-color: transparent;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.75rem;
+}
+
+.edit-btn:hover {
+    background-color: #f1f7ff;
+}
+
+/* Payment method and recipient selection */
+.payment-method-section {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-display {
+    padding: 0.5rem 0;
+}
+
+.payment-method-edit {
+    margin-left: auto;
+}
+
+.edit-link {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+/* Recent recipients section */
+.recent-recipients-section {
+    margin-top: 1.5rem;
+}
+
+.recent-recipients-section h5 {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+}
+
+.recent-recipients-list {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.recent-recipient-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recent-recipient-item:hover {
+    background-color: #e9ecef;
+}
+
+.recent-recipient-info {
+    flex-grow: 1;
+}
+
+.recent-recipient-name {
+    font-weight: 500;
+}
+
+.recent-recipient-account {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.view-option {
+    padding: 0.5rem;
+    border-radius: 50%;
+    color: #6c757d;
+}
+
+/* Transfer info section */
+.transfer-info-section {
+    margin-bottom: 1.5rem;
+}
+
+.amount-display-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.total-row {
+    font-weight: 600;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+.payment-footnote {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Saved payment section */
+.saved-payment-section {
+    margin-top: 2rem;
+}
+
+.saved-payment-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.payment-info {
+    flex-grow: 1;
+}
+
+.payment-name {
+    font-weight: 500;
+}
+
+.payment-number {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.payment-action {
+    display: flex;
+    align-items: center;
+}
+
+.payment-action .view-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    background-color: transparent;
+    transition: all 0.2s;
+}
+
+.payment-action .view-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Review details screen */
+.review-details-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.review-details-section:last-of-type {
+    border-bottom: none;
+}
+
+.review-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.review-details-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.review-details-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.review-details-value {
+    font-weight: 500;
+    text-align: right;
+}
+
+.total-item {
+    font-weight: 600;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+/* Terms section */
+.terms-section {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.terms-section ul {
+    padding-left: 1.5rem;
+}
+
+.terms-section li {
+    margin-bottom: 0.5rem;
+}
+
+.link-text {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.footnote {
+    font-size: 0.8rem;
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+.fraud-alert-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.fraud-alert-section h4 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Security code screen */
+.security-code-card-image {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.security-code-input-container {
+    max-width: 400px;
+    margin: 0 auto 2rem;
+}
+
+.security-code-input-container .input-group {
+    margin-bottom: 0.5rem;
+}
+
+.security-code-input-container .form-control {
+    height: 50px;
+    font-size: 1.25rem;
+    letter-spacing: 0.1rem;
+    text-align: center;
+}
+
+#securityCodeError {
+    display: flex;
+    align-items: center;
+    color: #dc3545;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+#securityCodeError svg {
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Success message */
+.success-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+}
+
+.btn-new-transfer {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-new-transfer:hover {
+    background-color: #e64a19;
+}
+
+/* Utility for fixed bottom buttons */
+.fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 1rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Add padding to content to account for fixed bottom button */
+.transfer-details {
+    padding-bottom: 5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .transfer-card {
+        border-radius: 0;
+        margin: -1rem;
+        box-shadow: none;
+    }
+    
+    .transfer-details {
+        padding: 1rem;
+    }
+    
+    .fixed-bottom {
+        padding: 0.75rem 1rem;
+    }
+    
+    .section-header h2,
+    .section-header h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation for transitions */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
+}
