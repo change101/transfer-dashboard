@@ -1,3 +1,4 @@
+// Mar 11
 // transfer-dashboard/send-money/script.js
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -498,6 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Error setting up recipient selection view:", error);
         }
     }
+    
     
     // Show the payment method view
     function showPaymentMethodView() {
