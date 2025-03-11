@@ -186,6 +186,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide loading screen
         loadingContainer.style.display = 'none';
         transferContent.style.display = 'block';
+
+
+            // Check if user is completely new (no history at all)
+        const isCompletelyNewUser = !data.user_history || (!data.user_history.recipients?.length && !data.user_history.payment_methods?.length);
+
+        // If completely new user, show the full input form (Image 1)
+        if (isCompletelyNewUser) {
+            setupFirstTimeUserView();
+        return;
+        }
         
         console.log("Checking for preferred recipient:", transferData.preferred_recipient_id);
         
@@ -383,6 +393,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // First make sure all other views are hidden
         showView('recipientSelectionView');
+
+        if (!userData.user_history || !userData.user_history.payment_methods || 
+            userData.user_history.payment_methods.length === 0) {
+            // No payment methods available, make sure to display payment input
+            document.getElementById('recipientViewPaymentMethod').style.display = 'none';
+            
+            // Either directly show payment method view after saving recipient
+            // Or set a flag to show it automatically when recipient form is submitted
+            document.getElementById('editPaymentMethodLink').click(); // Simulate clicking edit
+        }
         
         try {
             // Clear input fields
@@ -1912,6 +1932,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     continueButton.textContent = originalText;
                 }
             }
+
+            showReviewScreen();
         });
     }
     
