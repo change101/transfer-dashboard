@@ -2,7 +2,42 @@
 // transfer-dashboard/send-money/script.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM content loaded, script running!");
+
+    console.log("DOM content loaded, removing obsolete elements");
+
+    
+    // Remove obsolete elements
+    const obsoleteElements = [
+        'firstTimeView',        // Old first-time user view
+        'reviewView',           // Old review screen
+        'viewDetailsContainer', // Old details container
+        'addRecipientForm',     // Old recipient form
+        'addPaymentForm',       // Old payment form
+        'returningUserView'     // Old returning user view
+    ];
+    
+    // Remove each obsolete element from the DOM
+    obsoleteElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element && element.parentNode) {
+            console.log(`Removing obsolete element: ${id}`);
+            element.parentNode.removeChild(element);
+        }
+    });
+    
+    // Log approved elements that should remain
+    const approvedElements = [
+        'recipientSelectionView',  // Image2
+        'paymentMethodView',       // Component of Image3
+        'reviewDetailsView',       // Image3
+        'securityCodeScreen',      // Security verification
+        'successMessage',          // Success message
+        'loadingContainer',        // Loading screen
+        'errorContainer'           // Error display
+    ];
+    
+    console.log("Retaining only approved elements:", approvedElements);
+    
     
     // Get transaction ID from URL
     const urlParams = new URLSearchParams(window.location.search);
