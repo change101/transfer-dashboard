@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const successMessage = document.getElementById('successMessage');
     
     // API base URL - Get base URL dynamically rather than hardcoding
-    const API_BASE_URL = 'https://0e595e084b34.ngrok.app';
+    const API_BASE_URL = 'https://d47ec57b6f75.ngrok.app';
     // const API_BASE_URL = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
     // ? 'http://localhost:5001'  // Use localhost:5001 for local development
     // : window.location.origin;  // Otherwise use the same origin as the page
