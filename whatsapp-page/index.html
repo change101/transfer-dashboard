@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ria Money Transfer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <!-- Replace with Ria Money logo -->
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Ria Money Logo" width="50" height="30">
+                </div>
+                <nav class="desktop-nav">
+                    <ul>
+                        <li><a href="#">Send Money</a></li>
+                        <li><a href="#">For Business</a></li>
+                        <li><a href="#">How it Works</a></li>
+                        <li><a href="#">Resources</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <a href="#" class="login-btn">Login</a>
+                    <a href="#" class="signup-btn">Sign Up</a>
+                </div>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation (Hidden by default) -->
+    <div class="mobile-nav">
+        <ul>
+            <li><a href="#">Send Money</a></li>
+            <li><a href="#">For Business</a></li>
+            <li><a href="#">How it Works</a></li>
+            <li><a href="#">Resources</a></li>
+            <li><a href="#" class="login-mobile">Login</a></li>
+            <li><a href="#" class="signup-mobile">Sign Up</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Money transfer in seconds from WhatsApp</h1>
+                    <p>Send money to friends and family with just a chat.</p>
+                    <a href="#" class="whatsapp-button">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="WhatsApp Icon" width="24" height="24">
+                        Start on WhatsApp
+                    </a>
+                </div>
+                <div class="hero-form">
+                    <div class="form-header">
+                        <p class="offer-text">Offer for new customers!</p>
+                    </div>
+                    <form>
+                        <div class="form-group country-select">
+                            <label>Send to</label>
+                            <select>
+                                <option value="mexico">Mexico</option>
+                                <option value="colombia">Colombia</option>
+                                <option value="peru">Peru</option>
+                            </select>
+                        </div>
+                        <div class="form-group amount-input">
+                            <div class="input-wrapper">
+                                <label>You send</label>
+                                <input type="text" value="$ 1000.00" />
+                            </div>
+                            <div class="currency">
+                                <span>USD</span>
+                            </div>
+                        </div>
+                        <div class="form-group recipient-amount">
+                            <div class="input-wrapper">
+                                <label>They receive</label>
+                                <input type="text" value="$ 16,995.00" readonly />
+                            </div>
+                            <div class="currency">
+                                <span>MXN</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="send-money-btn">Continue</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Showcases -->
+    <section class="customer-showcase">
+        <div class="container">
+            <div class="customer-cards">
+                <div class="customer-card">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Mexico Customer" width="100" height="100">
+                    <div class="country-flag">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Mexico Flag" width="20" height="14">
+                    </div>
+                </div>
+                <div class="customer-card">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Colombia Customer" width="100" height="100">
+                    <div class="country-flag">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Colombia Flag" width="20" height="14">
+                    </div>
+                </div>
+                <div class="customer-card">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Peru Customer" width="100" height="100">
+                    <div class="country-flag">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Peru Flag" width="20" height="14">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section class="partners">
+        <div class="container">
+            <h2>We work with the largest remittance payers in Latin America</h2>
+            <div class="partners-slider">
+                <div class="partners-row">
+                    <!-- Replace with actual partner logos -->
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Coppel" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Oxxo" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Elektra" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Bancomer" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Soriana" width="120" height="60">
+                    </div>
+                </div>
+                <div class="partners-row">
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Bodega Aurrera" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Banorte" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Farmacia Del Ahorro" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Banco Azteca" width="120" height="60">
+                    </div>
+                    <div class="partner-logo">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Walmart" width="120" height="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Send Money Section -->
+    <section class="how-to-send">
+        <div class="container">
+            <h2>How to send money home in 3 simple steps</h2>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-image">
+                            <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Start a chat with Ria via WhatsApp" width="300" height="300">
+                        </div>
+                        <div class="step-text">
+                            <h3>Start a chat with Ria via WhatsApp</h3>
+                            <p>Simply send a message to our WhatsApp number, and our digital assistant will guide you through the process.</p>
+                            <a href="#" class="step-button">Start on WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content reverse">
+                        <div class="step-text">
+                            <h3>Provide some details about the transfer</h3>
+                            <p>Our assistant will ask you for all the required information. It only takes a minute to set up your first transfer.</p>
+                            <a href="#" class="step-button">Learn More</a>
+                        </div>
+                        <div class="step-image">
+                            <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Provide details for transfer" width="300" height="300">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-image">
+                            <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Pay and money is sent instantly" width="300" height="300">
+                        </div>
+                        <div class="step-text">
+                            <h3>Pay and that's it! Your money will be sent instantly</h3>
+                            <p>Choose your preferred payment method, complete the payment, and your money will be on its way to your loved ones right away.</p>
+                            <a href="#" class="step-button">Contact Support</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Section -->
+    <section class="why-choose">
+        <div class="container">
+            <h2>Why choose Ria Money Transfer</h2>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Users Icon" width="40" height="40">
+                    </div>
+                    <h3>100 million+ happy users</h3>
+                    <p>We've helped millions of people send money to their loved ones around the world.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Clock Icon" width="40" height="40">
+                    </div>
+                    <h3>24/7 online transfers</h3>
+                    <p>Our platform is available 24/7, so you can send money whenever you need to.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Trust Icon" width="40" height="40">
+                    </div>
+                    <h3>Trusted for over 20 years</h3>
+                    <p>With decades of experience, we've built a reputation for reliability and trustworthiness.</p>
+                </div>
+            </div>
+            
+            <a href="#" class="learn-more-btn">Learn more about us</a>
+        </div>
+    </section>
+
+    <!-- Testimonial Section -->
+    <section class="testimonial">
+        <div class="container">
+            <div class="testimonial-content">
+                <div class="quote-icon">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Quote Icon" width="40" height="40">
+                </div>
+                <blockquote>
+                    "The rates are competitive, and the funds are sent very quickly."
+                </blockquote>
+                <div class="testimonial-author">
+                    <span>— James Hernandez</span>
+                </div>
+            </div>
+            <a href="#" class="more-reviews-btn">Read more reviews</a>
+        </div>
+    </section>
+
+    <!-- Available Stores Section -->
+    <section class="available-stores">
+        <div class="container">
+            <h2>With Ria, you can send money to almost any store</h2>
+            
+            <div class="stores-grid">
+                <!-- Replace with actual store logos -->
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="7-Eleven" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Circle K" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Walgreens" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="CVS" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Walmart" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Kroger" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Target" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Safeway" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Costco" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Publix" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="H-E-B" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Aldi" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Rite Aid" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Dollar General" width="80" height="40">
+                </div>
+                <div class="store">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Family Dollar" width="80" height="40">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Refer & Earn Section -->
+    <section class="refer-earn">
+        <div class="container">
+            <div class="refer-content">
+                <div class="refer-image">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Gift box illustration" width="200" height="200">
+                </div>
+                <div class="refer-text">
+                    <h2>Refer & Earn</h2>
+                    <p>You earn $20 when your friend signs up and makes a first transfer. Your friend gets a $20 voucher too!</p>
+                    <a href="#" class="refer-btn">Refer a friend</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <div class="container">
+            <h2>FAQs</h2>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Are there payment method fees?</h3>
+                        <span class="toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, we do not charge any additional fees for payment methods. Our transparent pricing means what you see is what you pay, regardless of your chosen payment method.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Does Ria charge cancellation or refund fees?</h3>
+                        <span class="toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, we do not charge cancellation or refund fees. If you need to cancel a transfer, we process the refund without any additional charges.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can you match a competitor's rate?</h3>
+                        <span class="toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>While we always strive to offer the most competitive rates in the market, we do not match specific competitor rates. Our pricing is transparent and designed to be fair to all customers.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Is giving this online service safe and secure?</h3>
+                        <span class="toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, our service is secure and compliant with all relevant financial regulations. We use industry-standard encryption and security protocols to protect your data and transactions.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="#" class="view-all-faq-btn">View all FAQs</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Ria Money Logo" width="120" height="40">
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Press</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Help</h4>
+                        <ul>
+                            <li><a href="#">Support Center</a></li>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="#">Status</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <ul>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                            <li><a href="#">Compliance</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Connect</h4>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                        <div class="app-links">
+                            <a href="#"><img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="App Store" width="120" height="40"></a>
+                            <a href="#"><img src="https://github.com/change101/transfer-dashboard/blob/main/images/image-placeholder.png?raw=true" alt="Google Play" width="120" height="40"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 Ria Money Transfer. All rights reserved.</p>
+                <div class="language-selector">
+                    <select>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
