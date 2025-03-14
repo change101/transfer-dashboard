@@ -1,5 +1,7 @@
 /* // transfer-dashboard/send-money/styles.css */
 
+
+/* Global styles */
 body {
     background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -29,6 +31,7 @@ body {
     padding: 1.5rem;
 }
 
+/* Loading and error states */
 .loading-container {
     display: flex;
     flex-direction: column;
@@ -38,51 +41,48 @@ body {
     text-align: center;
 }
 
-.detail-section {
-    margin-bottom: 1.5rem;
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
 }
 
-.detail-section label, 
-.amount-section label {
-    display: block;
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Form and input styles */
+.section-header {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header h3, .section-header h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.form-label {
     font-size: 0.9rem;
     color: #666;
-    margin-bottom: 0.5rem;
 }
 
-.select-field {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 0.75rem;
+.input-group-text {
     background-color: #fff;
+    cursor: pointer;
 }
 
-.flag {
-    margin-right: 10px;
-    width: 24px;
-    height: 16px;
-    display: inline-block;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+.input-group-text:hover {
+    background-color: #f8f9fa;
 }
 
-/* Flags for specific countries */
-.flag-mx {
-    background-image: url('https://flagcdn.com/w40/mx.png');
-}
-
-.flag-gt {
-    background-image: url('https://flagcdn.com/w40/gt.png');
-}
-
-.chevron-down {
-    color: #888;
-}
-
+/* Amount section styles */
 .amount-section {
     display: flex;
     justify-content: space-between;
@@ -95,6 +95,13 @@ body {
 .amount-left {
     padding: 0.75rem;
     flex-grow: 1;
+}
+
+.amount-left label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
 }
 
 .amount {
@@ -112,6 +119,58 @@ body {
     border-left: 1px solid #ddd;
 }
 
+/* Exchange rate styles */
+.exchange-rate {
+    background-color: #ffd0b3;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    color: #000000;
+}
+
+.rate-icon {
+    margin-right: 10px;
+}
+
+.exchange-rate-display {
+    background-color: #ffd0b3;
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    text-align: center;
+    color: #000000;
+    font-size: 0.9rem;
+}
+
+/* Delivery method style */
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.detail-section label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.select-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #fff;
+}
+
+.chevron-down {
+    color: #888;
+}
+
+/* Fee section styles */
 .fee-section {
     margin-top: 2rem;
     margin-bottom: 1.5rem;
@@ -131,6 +190,7 @@ body {
     margin-top: 0.5rem;
 }
 
+/* Button styles */
 .action-section {
     margin-top: 2rem;
     text-align: center;
@@ -153,689 +213,187 @@ body {
     background-color: #e64a19;
 }
 
-.alert {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-/* Country names to uppercase */
-#countryName {
-    text-transform: capitalize;
-}
-
-
-/* Recipient section styling */
-.section-header {
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.section-header h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.recipient-section, .payment-section {
-    margin-bottom: 1.5rem;
-}
-
-.selected-recipient, .selected-payment {
-    display: flex;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    margin-right: 12px;
-}
-
-.recipient-details, .card-details {
-    flex-grow: 1;
-}
-
-.recipient-name, .card-type {
-    font-weight: 600;
-}
-
-.recipient-country, .card-number {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-/* Recipient selector */
-.recipient-selector, .payment-selector {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
-
-.no-history .recipient-selector,
-.no-history .payment-selector {
-    display: none;
-}
-
-.recipient-section:hover .recipient-selector,
-.payment-section:hover .payment-selector {
-    max-height: 300px;
-}
-
-.recipient-option, .payment-option {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    cursor: pointer;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.2s;
-}
-
-.recipient-option:hover, .payment-option:hover {
-    background-color: #f1f3f5;
-}
-
-.recipient-option.selected, .payment-option.selected {
-    background-color: #e9ecef;
-}
-
-/* Card icons */
-.card-icon {
-    width: 40px;
-    height: 30px;
-    border-radius: 4px;
-    background-color: #ddd;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-icon.visa {
-    background-color: #1a1f71;
-    color: white;
-}
-
-.card-icon.mastercard {
-    background-color: #eb001b;
-    color: white;
-}
-
-.card-icon.amex {
-    background-color: #006fcf;
-    color: white;
-}
-
-/* Add new buttons */
-.add-new-btn {
-    width: 100%;
-    background: none;
-    border: 1px dashed #ced4da;
-    border-radius: 8px;
-    padding: 0.75rem;
-    color: #6c757d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.add-new-btn:hover {
-    background-color: #f8f9fa;
-    color: #212529;
-}
-
-.plus-icon {
-    font-size: 1.2rem;
-    margin-right: 6px;
-    font-weight: 600;
-}
-
-/* Forms */
-#addRecipientForm, #addPaymentForm {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-}
-
-.form-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-/* Exchange rate */
-.exchange-rate {
-    background-color: #ffd0b3;
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    color: #000000;
-}
-
-.rate-icon {
-    margin-right: 10px;
-}
-
-/* Success message */
-.success-container {
-    padding: 2rem;
-    text-align: center;
-}
-
-.success-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: #28a745;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 1.5rem;
-}
-
-.btn-new-transfer {
-    background-color: #ff5722;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.75rem 2rem;
-    font-weight: 500;
-    margin-top: 1.5rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-new-transfer:hover {
-    background-color: #e64a19;
-}
-
-/* Default badge */
-.default-badge {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    background-color: #cfe2ff;
-    color: #0d6efd;
-    border-radius: 4px;
-}
-
-
-
-
-
-
-/* Additional styles for send-money/styles.css */
-
-/* Option selectors */
-.option-selector {
-    margin-bottom: 1rem;
-}
-
-.recipient-option, .payment-option {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.recipient-option:hover, .payment-option:hover {
-    background-color: #f8f9fa;
-    border-color: #ced4da;
-}
-
-.recipient-option.selected, .payment-option.selected {
-    background-color: #e8f0fe;
-    border-color: #4285f4;
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    margin-right: 12px;
-}
-
-.recipient-details, .payment-details {
-    flex-grow: 1;
-}
-
-.recipient-name, .card-type {
-    font-weight: 600;
-}
-
-.recipient-country, .card-number {
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-
-/* Card icon */
-.card-icon {
-    width: 40px;
-    height: 30px;
-    border-radius: 4px;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.card-icon.visa {
-    background-color: #1a1f71;
-}
-
-.card-icon.mastercard {
-    background-color: #eb001b;
-}
-
-.card-icon.amex {
-    background-color: #006fcf;
-}
-
-.card-icon.card-generic {
-    background-color: #6c757d;
-}
-
-/* Add new button */
-.add-new-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem;
-    border: 1px dashed #ced4da;
-    border-radius: 8px;
-    background: none;
-    color: #6c757d;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 1rem;
-}
-
-.add-new-btn:hover {
-    background-color: #f1f3f5;
-    color: #212529;
-}
-
-.plus-icon {
-    font-size: 1.1rem;
-    margin-right: 8px;
-}
-
-/* Form container */
-.form-container {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.form-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-/* Exchange rate */
-.exchange-rate {
-    display: flex;
-    align-items: center;
-    background-color: #ffd0b3;
-    color: #000000;
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.rate-icon {
-    margin-right: 10px;
-    font-size: 1.1rem;
-}
-
-/* Default badge */
-.default-badge {
-    font-size: 0.7rem;
-    background-color: #e3f2fd;
-    color: #1976d2;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    margin-left: auto;
-}
-
-/* Input group icon */
-.input-group-text {
-    background-color: #fff;
-    cursor: pointer;
-}
-.input-group-text:hover {
-    background-color: #f8f9fa;
-}
-
-/* Success message */
-.success-container {
-    padding: 2rem;
-    text-align: center;
-}
-
-.success-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: #28a745;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 1.5rem;
-}
-
-.btn-new-transfer {
-    background-color: #ff5722;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.75rem 2rem;
-    font-weight: 500;
-    margin-top: 1.5rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-new-transfer:hover {
-    background-color: #e64a19;
-}
-
-
-
-
-
-/* Add to your styles.css */
-.review-section {
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-}
-
-.review-section h4 {
-  font-size: 1.1rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.review-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.review-label {
-  color: #6c757d;
-}
-
-.review-value {
-  font-weight: 500;
-}
-
-.edit-btn {
-  background-color: transparent;
-  color: #0d6efd;
-  border: 1px solid #0d6efd;
-  border-radius: 50px;
-  padding: 0.5rem 1.5rem;
-  font-weight: 500;
-  margin-top: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: block;
-  width: 100%;
-  text-align: center;
-  margin-top: 0.75rem;
-}
-
-.edit-btn:hover {
-  background-color: #f1f7ff;
-}
-
-
-
-/* View button */
-.view-button {
-    margin-left: auto;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: #6c757d;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.view-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: #0d6efd;
-}
-
-/* Style for recipient and payment option containers */
-.recipient-option, .payment-option {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.recipient-option:hover, .payment-option:hover {
-    background-color: #f8f9fa;
-    border-color: #ced4da;
-}
-
-.recipient-option.selected, .payment-option.selected {
-    background-color: #e8f0fe;
-    border-color: #4285f4;
-}
-
-/* Details view container */
-#viewDetailsContainer {
-    padding: 1.5rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.recipient-detail-item, .payment-detail-item {
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.detail-label {
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-bottom: 0.25rem;
-}
-
-.detail-value {
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-/* Delete and back buttons */
-.form-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-}
-
-.btn-outline-secondary {
-    background-color: transparent;
-    color: #6c757d;
-    border: 1px solid #6c757d;
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #f8f9fa;
-}
-
-/* Button loading spinner */
-.spinner-border-sm {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 0.15em solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spinner-border .75s linear infinite;
-    margin-right: 0.5rem;
-}
-
-@keyframes spinner-border {
-    to { transform: rotate(360deg); }
-}
-
-
-
-
-
-/* Add these styles to your styles.css file */
-
-/* Security code screen styles */
-#securityCodeScreen {
-    padding: 1.5rem;
-}
-
-#securityCodeScreen .form-control {
-    padding: 0.75rem;
-    font-size: 1.1rem;
-    border-radius: 8px 0 0 8px;
-    transition: all 0.2s;
-}
-
-#securityCodeScreen .form-control:focus {
-    box-shadow: none;
-    border-color: #80bdff;
-}
-
-#securityCodeScreen .form-control.is-invalid {
-    border-color: #dc3545;
-    background-image: none;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-}
-
-#securityCodeScreen .input-group-text {
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    background-color: #fff;
-    border-left: none;
-}
-
-#securityCodeScreen .input-group-text:hover {
-    background-color: #f8f9fa;
-}
-
-#securityCodeError {
-    color: #dc3545;
-    font-size: 0.9rem;
-}
-
-/* Disable button styles */
 .continue-btn:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
 
-/* Card image styles */
-#securityCodeScreen img {
-    max-width: 100%;
-    height: auto;
+.edit-btn {
+    background-color: transparent;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.75rem;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Fixed bottom button container */
-.fixed-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #fff;
-    padding: 1rem;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+.edit-btn:hover {
+    background-color: #f1f7ff;
 }
 
-/* Add padding to the bottom of content so it's not hidden by fixed button */
-.transfer-details {
-    padding-bottom: 5rem;
+/* Payment method and recipient selection */
+.payment-method-section {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Review details view styles */
+.payment-display {
+    padding: 0.5rem 0;
+}
+
+.payment-method-edit {
+    margin-left: auto;
+}
+
+.edit-link {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+/* Recent recipients section */
+.recent-recipients-section {
+    margin-top: 1.5rem;
+}
+
+.recent-recipients-section h5 {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+}
+
+.recent-recipients-list {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.recent-recipient-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recent-recipient-item:hover {
+    background-color: #e9ecef;
+}
+
+.recent-recipient-info {
+    flex-grow: 1;
+}
+
+.recent-recipient-name {
+    font-weight: 500;
+}
+
+.recent-recipient-account {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.view-option {
+    padding: 0.5rem;
+    border-radius: 50%;
+    color: #6c757d;
+}
+
+/* Transfer info section */
+.transfer-info-section {
+    margin-bottom: 1.5rem;
+}
+
+.amount-display-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.total-row {
+    font-weight: 600;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+.payment-footnote {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Saved payment section */
+.saved-payment-section {
+    margin-top: 2rem;
+}
+
+.saved-payment-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.payment-info {
+    flex-grow: 1;
+}
+
+.payment-name {
+    font-weight: 500;
+}
+
+.payment-number {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.payment-action {
+    display: flex;
+    align-items: center;
+}
+
+.payment-action .view-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    background-color: transparent;
+    transition: all 0.2s;
+}
+
+.payment-action .view-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Review details screen */
 .review-details-section {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
@@ -851,17 +409,6 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
-}
-
-.review-details-header h4 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.edit-link {
-    color: #0d6efd;
-    text-decoration: none;
 }
 
 .review-details-item {
@@ -887,16 +434,7 @@ body {
     border-top: 1px solid #eee;
 }
 
-.exchange-rate-display {
-    background-color: #ffd0b3;
-    padding: 0.5rem;
-    border-radius: 6px;
-    margin-top: 1rem;
-    text-align: center;
-    color: #000000;
-    font-size: 0.9rem;
-}
-
+/* Terms section */
 .terms-section {
     margin-top: 2rem;
     font-size: 0.85rem;
@@ -934,178 +472,7 @@ body {
     margin-bottom: 0.75rem;
 }
 
-/* Recipient selection view styles */
-.recipient-form-section {
-    margin-bottom: 1.5rem;
-}
-
-.recipient-form-section h4,
-.transfer-info-section h4,
-.payment-method-section h4 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.recent-recipients-section {
-    margin-top: 1.5rem;
-}
-
-.recent-recipients-section h5 {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-bottom: 0.75rem;
-}
-
-.recent-recipients-list {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 0.5rem;
-}
-
-.recent-recipient-item {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    cursor: pointer;
-}
-
-.recent-recipient-item .avatar {
-    background-color: #34495e;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.75rem;
-}
-
-.recent-recipient-info {
-    flex-grow: 1;
-}
-
-.recent-recipient-name {
-    font-weight: 500;
-}
-
-.recent-recipient-account {
-    font-size: 0.8rem;
-    color: #6c757d;
-}
-
-.view-option {
-    padding: 0.5rem;
-    border-radius: 50%;
-    color: #6c757d;
-}
-
-.amount-display-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.total-row {
-    font-weight: 600;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-}
-
-.payment-method-section {
-    margin: 1.5rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.payment-display {
-    padding: 0.5rem 0;
-}
-
-.payment-footnote {
-    font-size: 0.8rem;
-    font-style: italic;
-    color: #6c757d;
-    margin-bottom: 2rem;
-}
-
-/* Payment method view styles */
-.card-form-section {
-    margin-bottom: 1.5rem;
-}
-
-.saved-payment-section {
-    margin-top: 2rem;
-}
-
-.saved-payment-option {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    margin-top: 0.5rem;
-}
-
-.saved-payment-option .avatar {
-    background-color: #34495e;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.75rem;
-}
-
-.payment-info {
-    flex-grow: 1;
-}
-
-.payment-name {
-    font-weight: 500;
-}
-
-.payment-number {
-    font-size: 0.8rem;
-    color: #6c757d;
-}
-
-
-
-
-
-
-
-
-
-
-.payment-action {
-    display: flex;
-    align-items: center;
-}
-
-.payment-action .view-button {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6c757d;
-    background-color: transparent;
-    transition: all 0.2s;
-}
-
-.payment-action .view-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Security code screen styles */
+/* Security code screen */
 .security-code-card-image {
     display: flex;
     justify-content: center;
@@ -1128,11 +495,6 @@ body {
     text-align: center;
 }
 
-.security-code-input-container .input-group-text {
-    cursor: pointer;
-    background-color: #fff;
-}
-
 #securityCodeError {
     display: flex;
     align-items: center;
@@ -1148,15 +510,56 @@ body {
     flex-shrink: 0;
 }
 
-/* Updated button styles */
-.continue-btn {
-    height: 50px;
-    font-size: 1.1rem;
+/* Success message */
+.success-container {
+    padding: 2rem;
+    text-align: center;
 }
 
-.continue-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+.success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+}
+
+.btn-new-transfer {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-new-transfer:hover {
+    background-color: #e64a19;
+}
+
+/* Utility for fixed bottom buttons */
+.fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 1rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Add padding to content to account for fixed bottom button */
+.transfer-details {
+    padding-bottom: 5rem;
 }
 
 /* Responsive adjustments */
@@ -1183,56 +586,9 @@ body {
     .section-header h3 {
         font-size: 1.25rem;
     }
-    
-    .review-details-header h4,
-    .recipient-form-section h4,
-    .transfer-info-section h4,
-    .payment-method-section h4 {
-        font-size: 1rem;
-    }
 }
 
-/* Form validation styles */
-.form-control.is-invalid {
-    border-color: #dc3545;
-    padding-right: calc(1.5em + 0.75rem);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
-    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-}
-
-.invalid-feedback {
-    display: none;
-    width: 100%;
-    margin-top: 0.25rem;
-    font-size: 0.875em;
-    color: #dc3545;
-}
-
-.was-validated .form-control:invalid ~ .invalid-feedback,
-.form-control.is-invalid ~ .invalid-feedback {
-    display: block;
-}
-
-/* Animation for button loading states */
-.spinner-border {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    vertical-align: -0.125em;
-    border: 0.2em solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spinner-border .75s linear infinite;
-    margin-right: 0.5rem;
-}
-
-@keyframes spinner-border {
-    to { transform: rotate(360deg); }
-}
-
-/* Transitions for view changes */
+/* Animation for transitions */
 .fade-enter {
     opacity: 0;
 }
@@ -1250,3 +606,4 @@ body {
     opacity: 0;
     transition: opacity 300ms;
 }
+
