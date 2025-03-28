@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Money transfer application initialized");
     
     // API base URL
-    const API_BASE_URL = 'https://d47ec57b6f75.ngrok.app';
+    const API_BASE_URL = 'https://1e0099dda573.ngrok.app';
     
     // Get transaction ID from URL
     const urlParams = new URLSearchParams(window.location.search);
